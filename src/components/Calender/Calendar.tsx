@@ -8,12 +8,14 @@ import { useQuery } from "react-query";
 import axios from "axios";
 import "./style.css";
 import RadioComponent from "../RadioGroup";
+import CalenderForm from "./FormCalender";
 
 const CalendarComponent: React.FC = () => {
   const [tasks, setTasks] = useRecoilState(tasksState);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [taskDescription, setTaskDescription] = useState("");
+  const [formData, setFormData] = useState<Task>()
   const {
     data: posts,
     error,
@@ -23,9 +25,18 @@ const CalendarComponent: React.FC = () => {
     1
   );
 
-  const onChange = (e: RadioChangeEvent) => {
-    console.log("radio checked", e.target.value);
-    setStatusTask(e.target.value);
+  const changedValues = (changedValues:Task, allValues: Task) => {
+    if (selectedDate) {
+    setFormData(
+      {
+        id: String(new Date().getTime()),
+        title: allValues.title,
+        date: selectedDate,
+        desc: allValues.desc,
+        status: allValues.status, // This is optional
+      }
+    );
+    }
   };
 
   useEffect(() => {
@@ -47,17 +58,9 @@ const CalendarComponent: React.FC = () => {
   };
 
   const handleOk = () => {
-    if (selectedDate) {
-      const newTask: Task = {
-        id: String(new Date().getTime()),
-        date: selectedDate,
-        desc: taskDescription,
-        status: statusTask,
-      };
-      setTasks([...tasks, newTask]);
-      setTaskDescription("");
+     setTasks([...tasks, formData as Task]);
+      // setTaskDescription("");
       setIsModalVisible(false);
-    }
   };
 
   const handleCancel = () => {
@@ -67,13 +70,13 @@ const CalendarComponent: React.FC = () => {
   const dateCellRender = (value: any) => {
     const date = value.format("YYYY-MM-DD");
     const tasksForDate = tasks.filter((task) => task.date === date);
-
     return tasksForDate.length ? (
       <List
         size="small"
         dataSource={tasksForDate}
+        
         renderItem={(item) => (
-          <List.Item>
+          <List.Item id={item.id} >
             <Badge
               status={
                 item.status == 1
@@ -82,7 +85,7 @@ const CalendarComponent: React.FC = () => {
                   ? "error"
                   : "success"
               }
-              text={item.desc}
+              text={item.title}
               className="truncate ..."
             />
           </List.Item>
@@ -117,7 +120,8 @@ const CalendarComponent: React.FC = () => {
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <Input
+        <CalenderForm onFormChange={changedValues} />
+        {/* <Input
           value={taskDescription}
           onChange={(e) => setTaskDescription(e.target.value)}
           placeholder="Task description"
@@ -127,7 +131,7 @@ const CalendarComponent: React.FC = () => {
           OnChange={onChange}
           data={Status}
           valueSelected={statusTask}
-        />
+        /> */}
       </Modal>
     </div>
   );

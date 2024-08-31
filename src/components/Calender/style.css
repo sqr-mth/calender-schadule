@@ -34,3 +34,14 @@ td {
 .ant-picker-calendar {
     overflow: auto;
 }
+
+.ant-list-items {
+    max-height: 170px;
+    height: 100%;
+    overflow: scroll;
+}
+
+/* .ant-picker-calendar-date {
+    background-color: rgb(105, 105, 105);
+    color: #fff;
+} */

@@ -11,6 +11,7 @@ export const Status= {
 };
 export interface Task {
   id: string;
+  title:string;
   date: string;
   desc: string;
   status?:keyof typeof Status;
