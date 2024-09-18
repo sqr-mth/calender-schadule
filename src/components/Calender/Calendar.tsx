@@ -14,57 +14,62 @@ const CalendarComponent: React.FC = () => {
   const [tasks, setTasks] = useRecoilState(tasksState);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [taskDescription, setTaskDescription] = useState("");
-  const [formData, setFormData] = useState<Task>()
-  const {
-    data: posts,
-    error,
-    isLoading,
-  } = useQuery("postsData", retrievePosts);
-  const [statusTask, setStatusTask] = useState<keyof typeof Status | undefined>(
-    1
-  );
+  const [formData, setFormData] = useState<Task | undefined>(undefined);
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
+  const [statusTask, setStatusTask] = useState<keyof typeof Status | undefined>(undefined);
 
-  const changedValues = (changedValues:Task, allValues: Task) => {
-    if (selectedDate) {
-    setFormData(
-      {
-        id: String(new Date().getTime()),
-        title: allValues.title,
-        date: selectedDate,
-        desc: allValues.desc,
-        status: allValues.status, // This is optional
-      }
-    );
-    }
+  const { data: posts, error, isLoading } = useQuery("postsData", retrievePosts);
+
+  const changedValues = (changedValues: Partial<Task>, allValues: Task) => {
+    setFormData({
+      ...selectedTask,
+      ...allValues,
+      date: selectedDate || selectedTask?.date || "",
+    });
   };
 
-  useEffect(() => {
-    if (posts) {
-      setTasks((prevTasks) => {
-        const taskIds = new Set(prevTasks.map((task) => task.id));
-        const newTasks = [
-          ...prevTasks,
-          ...posts.filter((task: Task) => !taskIds.has(task.id)),
-        ];
-        return newTasks;
-      });
-    }
-  }, [posts, setTasks]);
+useEffect(() => {
+  if (posts) {
+    setTasks((prevTasks) => {
+      const taskIds = new Set(prevTasks.map((task) => task.id));
+      const newTasks = [
+        ...prevTasks,
+        ...posts.filter((task: Task) => !taskIds.has(task.id)),
+      ];
+      return newTasks;
+    });
+  }
+}, [posts, setTasks]);
+
 
   const onSelect = (date: any) => {
-    setSelectedDate(date.format("YYYY-MM-DD"));
+    const formattedDate = date.format("YYYY-MM-DD");
+    setSelectedDate(formattedDate);
+    const taskOnDate = tasks.find((task) => task.date === formattedDate);
+    setSelectedTask(taskOnDate ?? undefined);
     setIsModalVisible(true);
   };
 
   const handleOk = () => {
-     setTasks([...tasks, formData as Task]);
-      // setTaskDescription("");
+    if (formData) {
+      if (selectedTask) {
+        // Edit existing task
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === selectedTask.id ? { ...formData, id: task.id } : task
+          )
+        );
+      } else {
+        // Add new task
+        setTasks([...tasks, { ...formData, id: String(new Date().getTime()) }]);
+      }
       setIsModalVisible(false);
+    }
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    setSelectedTask(undefined);
   };
 
   const dateCellRender = (value: any) => {
@@ -74,9 +79,8 @@ const CalendarComponent: React.FC = () => {
       <List
         size="small"
         dataSource={tasksForDate}
-        
         renderItem={(item) => (
-          <List.Item id={item.id} >
+          <List.Item id={item.id}>
             <Badge
               status={
                 item.status == 1
@@ -94,17 +98,6 @@ const CalendarComponent: React.FC = () => {
     ) : null;
   };
 
-  const monthCellRender = (value: any) => {
-    const month = value.format("YYYY-MM");
-    const tasksForMonth = tasks.filter((task) => task.date.startsWith(month));
-
-    return tasksForMonth.length ? (
-      <div>
-        <Badge status="success" text={`${tasksForMonth.length} tasks`} />
-      </div>
-    ) : null;
-  };
-
   return (
     <div>
       <Calendar
@@ -112,26 +105,14 @@ const CalendarComponent: React.FC = () => {
         fullscreen={false}
         onSelect={onSelect}
         dateCellRender={dateCellRender}
-        monthCellRender={monthCellRender}
       />
       <Modal
-        title="Add Task"
+        title={selectedTask ? "Edit Task" : "Add Task"}
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <CalenderForm onFormChange={changedValues} />
-        {/* <Input
-          value={taskDescription}
-          onChange={(e) => setTaskDescription(e.target.value)}
-          placeholder="Task description"
-        />
-
-        <RadioComponent
-          OnChange={onChange}
-          data={Status}
-          valueSelected={statusTask}
-        /> */}
+        <CalenderForm onFormChange={changedValues} initialValues={selectedTask} />
       </Modal>
     </div>
   );
