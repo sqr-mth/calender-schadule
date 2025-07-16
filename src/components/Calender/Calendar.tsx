@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Calendar, Modal, Input, Badge, List, RadioChangeEvent } from "antd";
+import { Calendar, Modal, Badge, List, Spin, Button, Typography, Empty } from "antd";
+import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useRecoilState } from "recoil";
 import { tasksState, Task, Status } from "../../state/tasks";
 import { useQuery } from "react-query";
@@ -10,6 +11,8 @@ import "./style.css";
 import RadioComponent from "../RadioGroup";
 import CalenderForm from "./FormCalender";
 
+const { Title, Text } = Typography;
+
 const CalendarComponent: React.FC = () => {
   const [tasks, setTasks] = useRecoilState(tasksState);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -17,6 +20,7 @@ const CalendarComponent: React.FC = () => {
   const [formData, setFormData] = useState<Task | undefined>(undefined);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [statusTask, setStatusTask] = useState<keyof typeof Status | undefined>(undefined);
+  const [currentMonthTasks, setCurrentMonthTasks] = useState<number>(0);
 
   const { data: posts, error, isLoading } = useQuery("postsData", retrievePosts);
 
@@ -27,6 +31,28 @@ const CalendarComponent: React.FC = () => {
       date: selectedDate || selectedTask?.date || "",
     });
   };
+  
+  // Initialize form data with selected date when modal opens
+  useEffect(() => {
+    if (isModalVisible && selectedDate) {
+      if (selectedTask) {
+        // Editing existing task
+        setFormData({
+          ...selectedTask,
+          date: selectedDate,
+        });
+      } else {
+        // New task with selected date
+        setFormData({
+          id: String(new Date().getTime()),
+          title: "",
+          desc: "",
+          date: selectedDate,
+          status: 1, // Default to waiting status
+        });
+      }
+    }
+  }, [isModalVisible, selectedDate, selectedTask]);
 
 useEffect(() => {
   if (posts) {
@@ -34,12 +60,28 @@ useEffect(() => {
       const taskIds = new Set(prevTasks.map((task) => task.id));
       const newTasks = [
         ...prevTasks,
-        ...posts.filter((task: Task) => taskIds.has(task.id)),
+        ...posts.filter((task: Task) => !taskIds.has(task.id)),
       ];
       return newTasks;
     });
   }
 }, [posts, setTasks]);
+
+// Calculate number of tasks for the current month
+useEffect(() => {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  
+  const firstDayStr = firstDay.toISOString().split('T')[0];
+  const lastDayStr = lastDay.toISOString().split('T')[0];
+  
+  const count = tasks.filter(task => {
+    return task.date >= firstDayStr && task.date <= lastDayStr;
+  }).length;
+  
+  setCurrentMonthTasks(count);
+}, [tasks]);
 
 
   const onSelect = (date: any) => {
@@ -82,63 +124,133 @@ useEffect(() => {
   const dateCellRender = (value: any) => {
     const date = value.format("YYYY-MM-DD");
     const tasksForDate = tasks.filter((task) => task.date === date);
-    return tasksForDate.length ? (
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = date === today;
+    
+    return (
       <div 
+        className={`calendar-cell ${isToday ? 'today-cell' : ''}`}
         onClick={(e) => {
-          // This prevents the List container from interfering with calendar cell clicks
-          // Clicking anywhere in this div but not on a task item will still trigger onSelect
           e.stopPropagation();
           const formattedDate = value.format("YYYY-MM-DD");
           setSelectedDate(formattedDate);
-          setSelectedTask(undefined); // Ensure we're creating a new task
+          setSelectedTask(undefined);
           setIsModalVisible(true);
         }}
       >
-        <List
-          size="small"
-          dataSource={tasksForDate}
-          renderItem={(item) => (
-            <List.Item 
-              id={item.id} 
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent propagation to parent div
-                onTaskClick(e, item);
-              }} 
-              style={{ cursor: 'pointer' }}
-            >
-              <Badge
-                status={
-                  item.status == 1
-                    ? "warning"
-                    : item.status == 2
-                    ? "error"
-                    : "success"
-                }
-                text={item.title}
-                className="truncate ..."
-              />
-            </List.Item>
-          )}
-        />
+        {tasksForDate.length ? (
+          <List
+            size="small"
+            className="task-list"
+            dataSource={tasksForDate}
+            renderItem={(item) => (
+              <List.Item 
+                id={item.id} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTaskClick(e, item);
+                }} 
+                className={`task-item status-${item.status}`}
+              >
+                <Badge
+                  status={
+                    item.status == 1
+                      ? "warning"
+                      : item.status == 2
+                      ? "error"
+                      : "success"
+                  }
+                  text={item.title}
+                  className="truncate"
+                />
+              </List.Item>
+            )}
+          />
+        ) : (
+          <div className="empty-cell">
+            <PlusOutlined className="add-task-icon" />
+          </div>
+        )}
       </div>
-    ) : null;
+    );
   };
 
   return (
-    <div>
-      <Calendar
-        className="[&>tr>td>div>ant-picker-cell-inner]:!w-full"
-        fullscreen={false}
-        onSelect={onSelect}
-        cellRender={dateCellRender}
-      />
+    <div className="calendar-container">
+      <div className="calendar-header">
+        <Title level={4}>
+          <CalendarOutlined /> Interactive Calendar
+        </Title>
+        <div className="calendar-summary">
+          <div className="stats-card">
+            <Text type="secondary">Tasks This Month</Text>
+            <Text strong>{currentMonthTasks}</Text>
+          </div>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              setSelectedDate(today);
+              setSelectedTask(undefined);
+              // Reset form data first to clear any previous values
+              setFormData({
+                id: String(new Date().getTime()),
+                title: "",
+                desc: "", // Include required desc field
+                date: today,
+                status: 1 // Use valid status value (waiting)
+              });
+              setIsModalVisible(true);
+            }}
+          >
+            Add Task
+          </Button>
+        </div>
+      </div>
+      
+      {isLoading ? (
+        <div className="loading-container">
+          <Spin size="large" />
+          <Text className="loading-text">Loading your calendar...</Text>
+        </div>
+      ) : error ? (
+        <div className="error-container">
+          <Text type="danger">Failed to load calendar data.</Text>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      ) : (
+        <Calendar
+          className="custom-calendar"
+          fullscreen={false}
+          onSelect={onSelect}
+          cellRender={dateCellRender}
+        />
+      )}
+      
       <Modal
         title={selectedTask ? "Edit Task" : "Add Task"}
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        centered
+        className="task-modal"
+        destroyOnClose
       >
-        <CalenderForm onFormChange={changedValues} initialValues={selectedTask} />
+        {selectedDate ? (
+          <CalenderForm 
+            onFormChange={changedValues} 
+            initialValues={selectedTask || { 
+              id: String(new Date().getTime()),
+              title: "",
+              desc: "",
+              date: selectedDate,
+              status: 1
+            }}
+          />
+        ) : (
+          <Empty description="No date selected" />
+        )}
       </Modal>
     </div>
   );
