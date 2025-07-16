@@ -34,7 +34,7 @@ useEffect(() => {
       const taskIds = new Set(prevTasks.map((task) => task.id));
       const newTasks = [
         ...prevTasks,
-        ...posts.filter((task: Task) => !taskIds.has(task.id)),
+        ...posts.filter((task: Task) => taskIds.has(task.id)),
       ];
       return newTasks;
     });
@@ -45,8 +45,8 @@ useEffect(() => {
   const onSelect = (date: any) => {
     const formattedDate = date.format("YYYY-MM-DD");
     setSelectedDate(formattedDate);
-    const taskOnDate = tasks.find((task) => task.date === formattedDate);
-    setSelectedTask(taskOnDate ?? undefined);
+    // When clicking on the cell itself (not a task), always create a new task
+    setSelectedTask(undefined); // Clear any selected task to ensure we're creating a new one
     setIsModalVisible(true);
   };
 
@@ -72,29 +72,55 @@ useEffect(() => {
     setSelectedTask(undefined);
   };
 
+  const onTaskClick = (e: React.MouseEvent, task: Task) => {
+    e.stopPropagation(); // Prevent the cell's onSelect from being triggered
+    setSelectedDate(task.date);
+    setSelectedTask(task);
+    setIsModalVisible(true);
+  };
+
   const dateCellRender = (value: any) => {
     const date = value.format("YYYY-MM-DD");
     const tasksForDate = tasks.filter((task) => task.date === date);
     return tasksForDate.length ? (
-      <List
-        size="small"
-        dataSource={tasksForDate}
-        renderItem={(item) => (
-          <List.Item id={item.id}>
-            <Badge
-              status={
-                item.status == 1
-                  ? "warning"
-                  : item.status == 2
-                  ? "error"
-                  : "success"
-              }
-              text={item.title}
-              className="truncate ..."
-            />
-          </List.Item>
-        )}
-      />
+      <div 
+        onClick={(e) => {
+          // This prevents the List container from interfering with calendar cell clicks
+          // Clicking anywhere in this div but not on a task item will still trigger onSelect
+          e.stopPropagation();
+          const formattedDate = value.format("YYYY-MM-DD");
+          setSelectedDate(formattedDate);
+          setSelectedTask(undefined); // Ensure we're creating a new task
+          setIsModalVisible(true);
+        }}
+      >
+        <List
+          size="small"
+          dataSource={tasksForDate}
+          renderItem={(item) => (
+            <List.Item 
+              id={item.id} 
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent propagation to parent div
+                onTaskClick(e, item);
+              }} 
+              style={{ cursor: 'pointer' }}
+            >
+              <Badge
+                status={
+                  item.status == 1
+                    ? "warning"
+                    : item.status == 2
+                    ? "error"
+                    : "success"
+                }
+                text={item.title}
+                className="truncate ..."
+              />
+            </List.Item>
+          )}
+        />
+      </div>
     ) : null;
   };
 
@@ -104,11 +130,11 @@ useEffect(() => {
         className="[&>tr>td>div>ant-picker-cell-inner]:!w-full"
         fullscreen={false}
         onSelect={onSelect}
-        dateCellRender={dateCellRender}
+        cellRender={dateCellRender}
       />
       <Modal
         title={selectedTask ? "Edit Task" : "Add Task"}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
