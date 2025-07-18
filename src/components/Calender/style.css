@@ -70,19 +70,51 @@
 }
 
 .calendar-container {
-    padding: 32px;
-    background: var(--gradient-bg);
-    background-size: 400% 400%;
-    animation: floatingGradient 15s ease infinite;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    margin: 30px auto;
-    max-width: 1200px;
-    position: relative;
+    min-height: 100vh;
+    min-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    background: linear-gradient(135deg, #f8fafd 0%, #e3ecff 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
     overflow: hidden;
-    border: 1px solid rgba(220, 230, 240, 0.8);
-    transition: var(--transition-normal);
 }
+
+.calendar-container:hover {
+    box-shadow: 0 18px 60px rgba(24, 144, 255, 0.16), 0 4px 16px rgba(114, 46, 209, 0.09);
+}
+
+.calendar-container::before,
+.calendar-container::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.calendar-container::before {
+    top: -70px;
+    right: -70px;
+    width: 230px;
+    height: 230px;
+    background: radial-gradient(circle, rgba(114, 46, 209, 0.09) 0%, rgba(114, 46, 209, 0) 70%);
+}
+
+.calendar-container::after {
+    bottom: -70px;
+    left: -70px;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(24, 144, 255, 0.07) 0%, rgba(24, 144, 255, 0) 70%);
+}
+
 
 .calendar-container:hover {
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
@@ -149,31 +181,36 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 28px 10px 28px;
-    border-bottom: 1px solid #d9d9d9;
-    border-radius: 12px;
-    background: #f5f5f5;
+    padding: 24px 36px 16px 36px;
+    border-bottom: 1.5px solid rgba(200, 220, 255, 0.23);
+    border-radius: 24px 24px 0 0;
+    background: rgba(240, 245, 255, 0.85);
+    box-shadow: 0 2px 18px rgba(24, 144, 255, 0.05);
     position: relative;
-    z-index: 1;
+    z-index: 2;
     text-align: center;
+    backdrop-filter: blur(8px);
 }
 
+
 .calendar-header h4 {
-    font-family: Arial, sans-serif;
-    font-weight: 800;
-    font-size: 24px;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 900;
+    font-size: 2.3rem;
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
     background-size: 200% auto;
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
     margin: 0;
-    letter-spacing: 0.5px;
-    animation: floatingGradient 5s ease infinite;
+    letter-spacing: 1px;
+    animation: floatingGradient 7s ease infinite;
     position: relative;
     display: inline-block;
     text-align: center;
+    filter: drop-shadow(0 2px 8px rgba(24, 144, 255, 0.06));
 }
+
 
 .calendar-header h4::after {
     content: '';
@@ -197,7 +234,19 @@
 
 .ant-btn-primary {
     background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 12px rgba(24, 144, 255, 0.08) !important;
+    border: none !important;
+    transition: box-shadow 0.22s;
 }
+
+.ant-btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(24, 144, 255, 0.13) !important;
+    filter: brightness(1.07);
+}
+
 
 .ant-btn:hover {
     transform: translateY(-2px) !important;
@@ -218,31 +267,104 @@
     justify-content: center;
 }
 
-@media (max-width: 600px) {
-    .calendar-summary {
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 12px;
+@media (max-width: 900px) {
+    .calendar-container {
+        min-width: 100vw;
+        min-height: 100vh;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    .ant-picker-calendar {
+        padding: 2vw 1vw 8vw 1vw;
+        border-radius: 0;
+    }
+
+    .ant-picker-cell-inner {
+        min-width: 70px;
+        min-height: 70px;
+        font-size: 1rem;
+        padding: 6px 4px 4px 4px;
+        border-radius: 10px;
+    }
+
+    .task-container {
+        min-height: 18px;
+        padding: 2px 0 0 0;
+        border-radius: 8px;
     }
 }
 
+@media (max-width: 600px) {
+    .calendar-container {
+        min-width: 100vw;
+        min-height: 100vh;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    .ant-picker-calendar {
+        padding: 0.5vw 0.5vw 8vw 0.5vw;
+        border-radius: 0;
+    }
+
+    .ant-picker-cell-inner {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 0.97rem;
+        padding: 3px 2px 2px 2px;
+        border-radius: 8px;
+    }
+
+    .task-container {
+        min-height: 10px;
+        padding: 1px 0 0 0;
+        border-radius: 6px;
+    }
+
+    .task-count {
+        left: 4px;
+        font-size: 0.82rem;
+        padding: 1px 6px;
+    }
+}
+
+
 .stats-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 12px 18px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 18px;
+    padding: 18px 28px;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.07);
     display: flex;
     flex-direction: column;
     min-width: 140px;
-    border: 1px solid rgba(240, 240, 240, 0.9);
-    transition: var(--transition-normal);
+    border: none;
+    transition: box-shadow 0.3s;
     position: relative;
     overflow: hidden;
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
     text-align: center;
+    margin: 0 10px;
 }
+
+.stats-card:hover {
+    box-shadow: 0 8px 32px rgba(24, 144, 255, 0.11);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.stats-card strong {
+    font-size: 2.1rem;
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-top: 8px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-align: center;
+    filter: drop-shadow(0 2px 6px rgba(24, 144, 255, 0.04));
+}
+
 
 .stats-card::before {
     content: '';
@@ -307,24 +429,30 @@
 .calendar-cell {
     height: 100%;
     min-height: 100px;
+    width: 100% !important;
     cursor: pointer;
-    border-radius: 10px;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 18px;
+    transition: box-shadow 0.3s, background 0.3s;
     position: relative;
     overflow: hidden;
-    padding: 4px;
+    padding: 0;
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    border: 1px solid transparent;
+    /* border: 1.5px solid rgba(200, 220, 255, 0.16); */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 60%, rgba(240, 245, 255, 0.82) 100%);
+    box-shadow: 0 2px 16px rgba(24, 144, 255, 0.07), 0 1px 4px rgba(114, 46, 209, 0.03);
+    margin: 0 !important;
+    justify-content: stretch;
 }
 
+
 .calendar-cell:hover {
-    background-color: rgba(24, 144, 255, 0.08);
+    /* bakground-color: rgba(24, 144, 255, 0.08); */
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    /* box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); */
     z-index: 10;
-    border-color: rgba(24, 144, 255, 0.3);
+    /* border-color: rgba(24, 144, 255, 0.3); */
 }
 
 /* Date indicator styling */
@@ -383,18 +511,26 @@
 }
 
 .task-item {
-    padding: 2px 8px !important;
-    margin-bottom: 2px !important;
-    border-radius: 6px !important;
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.3s ease !important;
+    padding: 6px 14px !important;
+    margin-bottom: 6px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.82) !important;
+    box-shadow: 0 1.5px 6px rgba(114, 46, 209, 0.04) !important;
+    transition: box-shadow 0.22s, background 0.22s !important;
     height: auto !important;
     cursor: pointer !important;
     border: none !important;
     position: relative !important;
-    overflow: hidden !important;
+    overflow: visible !important;
 }
+
+.task-item:hover {
+    background: #f6faff !important;
+    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.09) !important;
+    transform: translateY(-2px) scale(1.03) !important;
+    z-index: 12;
+}
+
 
 .task-item:hover {
     background-color: white !important;
@@ -434,7 +570,7 @@
 .today-cell {
     background: linear-gradient(135deg, rgba(24, 144, 255, 0.1) 0%, rgba(24, 144, 255, 0.04) 100%);
     animation: pulse 2s infinite;
-    border: 2px solid var(--primary-color);
+    /* border: 2px solid var(--primary-color); */
 }
 
 .today-cell .date-indicator {
@@ -529,15 +665,17 @@
 
 /* Calendar Header */
 .ant-picker-calendar-header {
-    margin-bottom: 24px !important;
-    padding: 15px 0 !important;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02) !important;
+    margin-bottom: 18px !important;
+    padding: 18px 0 10px 0 !important;
+    background: rgba(240, 245, 255, 0.75);
+    border-radius: 18px !important;
+    box-shadow: 0 2px 10px rgba(24, 144, 255, 0.06) !important;
     text-align: center;
     justify-content: center !important;
     display: flex !important;
+    border: none !important;
 }
+
 
 .ant-picker-calendar-header button {
     border-radius: 8px !important;
@@ -561,9 +699,40 @@
 
 /* Calendar Cells */
 .ant-picker-cell {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.22s, background 0.22s;
     text-align: center;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
 }
+
+.ant-picker-cell-in-view {
+    background: rgba(255, 255, 255, 0.80);
+    border-radius: 14px;
+    margin: 4px 2px;
+    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.06);
+    text-align: center;
+    border: none;
+}
+
+.ant-picker-cell-selected .ant-picker-cell-inner,
+.ant-picker-cell-range-start .ant-picker-cell-inner,
+.ant-picker-cell-range-end .ant-picker-cell-inner {
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: #fff !important;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(24, 144, 255, 0.13);
+}
+
+.ant-picker-cell:hover .ant-picker-cell-inner {
+    background: rgba(24, 144, 255, 0.10) !important;
+    border-radius: 10px;
+    color: #096dd9 !important;
+}
+
 
 td {
     overflow: hidden;
@@ -619,21 +788,431 @@ td {
     width: 100%;
     table-layout: fixed;
     position: relative;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 1.5px 8px rgba(24, 144, 255, 0.06);
+    border: none;
 }
+
 
 .ant-picker-cell-inner {
     width: 100%;
     height: 100%;
+    min-height: 110px;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 1.12rem;
+    font-weight: 600;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 4px 24px rgba(24, 144, 255, 0.10), 0 1.5px 8px rgba(114, 46, 209, 0.06);
+    transition: box-shadow 0.22s, background 0.22s, transform 0.18s;
+    z-index: 2;
+    margin: 4px 2px;
+    padding: 0;
+    border: none;
+    gap: 0;
+    overflow: hidden;
+}
+
+.ant-picker-cell,
+.ant-picker-cell-inner {
+    border: none !important;
+}
+
+
+/* Center SVG in empty cell */
+.empty-cell {
+    width: 100%;
+    height: 100%;
+    min-height: 110px;
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.18s;
+}
+
+.empty-cell svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    margin: 0 auto;
+    color: #1890ff;
+    opacity: 0.85;
+    transition: color 0.18s, opacity 0.18s, transform 0.18s;
+}
+
+.empty-cell:hover svg {
+    color: #1890ff;
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+
+/* Centered + button for add-task */
+.add-task-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #e3ecff 30%, #1890ff 100%);
+    color: #1890ff;
+    border-radius: 50%;
+    font-size: 2rem;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 2px 10px rgba(24, 144, 255, 0.10);
+    margin: 0 auto;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.add-task-btn:hover {
+    background: linear-gradient(135deg, #1890ff 30%, #52c41a 100%);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(24, 144, 255, 0.18);
+}
+
+.ant-picker-calendar-date {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 80px;
+    position: relative;
+    padding: 18px 14px 14px 14px;
+    height: 100%;
+}
+
+.ant-picker-calendar-date-content {
+    width: 100% !important;
+    min-height: 32px;
+    max-height: 80px;
+    position: relative;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    overflow-y: auto;
+    background: transparent;
+    border-radius: 12px;
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: #e0e7ff #ffffff;
+}
+
+.ant-picker-calendar-date-content::-webkit-scrollbar {
+    width: 6px;
+    background: transparent;
+}
+
+.ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(120deg, #e0e7ff 40%, #c6d6ff 100%);
+    border-radius: 8px;
+    min-height: 24px;
+}
+
+.ant-picker-calendar-date-content::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 8px;
+}
+
+/* Task container and item redesign */
+.task-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    position: relative;
+    z-index: 3;
+    border: none;
+    overflow: visible;
+}
+
+.task-item {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 12px rgba(24, 144, 255, 0.08), 0 1.5px 6px rgba(114, 46, 209, 0.04) !important;
+    padding: 10px 14px !important;
+    margin-bottom: 0 !important;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #222;
+    border: 1.5px solid #e6f0ff !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: box-shadow 0.22s, background 0.22s !important;
+    cursor: pointer !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+.task-item:hover {
+    background: #f6faff !important;
+    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.13) !important;
+    transform: translateY(-2px) scale(1.03) !important;
+    z-index: 12;
+}
+
+
+.ant-picker-calendar-date {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 80px;
     position: relative;
 }
 
+.ant-picker-calendar-date-value {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1890ff;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.06);
+    padding: 2px 12px;
+    margin-bottom: 0;
+    margin-top: 0;
+    letter-spacing: 0.5px;
+    border: none;
+    transition: background 0.18s, color 0.18s;
+    position: relative;
+    z-index: 3;
+}
+.ant-picker-cell-today .ant-picker-calendar-date-value {
+    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
+    color: #fff !important;
+    border: none;
+}
+
+
+.ant-picker-cell-today .ant-picker-calendar-date-value {
+    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
+    color: #fff !important;
+    border: none;
+}
+
+.ant-picker-calendar-date-content {
+    width: 100% !important;
+    min-height: 32px;
+    max-height: 80px;
+    position: relative;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border-radius: 10px;
+    padding: 0;
+}
+.ant-picker-calendar-date-content:empty {
+    overflow-y: hidden !important;
+    min-height: 0;
+    max-height: none;
+    scrollbar-width: none !important;
+}
+.ant-picker-calendar-date-content:empty::-webkit-scrollbar {
+    display: none !important;
+}
+
+
+.ant-picker-calendar-date-content::-webkit-scrollbar {
+    width: 6px;
+    background: transparent;
+}
+
+.ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(120deg, #e0e7ff 40%, #c6d6ff 100%);
+    border-radius: 8px;
+    min-height: 24px;
+}
+
+.ant-picker-calendar-date-content::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 8px;
+}
+
+
+/* Responsive for small screens */
+@media (max-width: 900px) {
+    .ant-picker-cell-inner {
+        min-width: 70px;
+        min-height: 70px;
+        font-size: 1rem;
+        padding: 8px 4px 6px 4px;
+        border-radius: 10px;
+        gap: 6px;
+    }
+
+    .ant-picker-calendar-date {
+        min-height: 54px;
+        gap: 4px;
+    }
+
+    .ant-picker-calendar-date-value {
+        font-size: 1rem;
+        padding: 2px 8px;
+    }
+
+    .ant-picker-calendar-date-content {
+        min-height: 16px;
+        max-height: 34px;
+        gap: 2px;
+        padding: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .ant-picker-cell-inner {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 0.97rem;
+        padding: 4px 2px 2px 2px;
+        border-radius: 8px;
+        gap: 4px;
+    }
+
+    .ant-picker-calendar-date {
+        min-height: 34px;
+        gap: 2px;
+    }
+
+    .ant-picker-calendar-date-value {
+        font-size: 0.92rem;
+        padding: 1px 5px;
+    }
+
+    .ant-picker-calendar-date-content {
+        min-height: 8px;
+        max-height: 18px;
+        gap: 1px;
+        padding: 0;
+    }
+}
+
+
+.ant-picker-cell-inner:hover {
+    background: rgba(24, 144, 255, 0.09);
+    box-shadow: 0 8px 32px rgba(24, 144, 255, 0.14);
+    transform: translateY(-3px) scale(1.03);
+}
+
+.ant-picker-cell-today .ant-picker-cell-inner {
+    border: 2px solid #1890ff !important;
+    background: rgba(24, 144, 255, 0.08) !important;
+    box-shadow: 0 4px 18px rgba(24, 144, 255, 0.13) !important;
+}
+
+/* Day number badge */
+.ant-picker-calendar-date-value {
+    display: inline-block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1890ff;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.06);
+    padding: 2px 10px;
+    margin-bottom: 8px;
+    margin-top: 0;
+    letter-spacing: 0.5px;
+    border: 1.5px solid #e6f0ff;
+    transition: background 0.18s, color 0.18s;
+}
+
+.ant-picker-cell-today .ant-picker-calendar-date-value {
+    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
+    color: #fff !important;
+    border: none;
+}
+
+/* Task container glassy style */
+.task-container {
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px 0 0 0;
+    background: rgba(255, 255, 255, 0.68);
+    border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(24, 144, 255, 0.07);
+    min-height: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    z-index: 3;
+    /* border: 1px solid rgba(200, 220, 255, 0.10); */
+    overflow: visible;
+}
+
+.task-container:empty {
+    background: none;
+    box-shadow: none;
+    border: none;
+    min-height: 0;
+}
+
+/* Task badge style */
+.task-count {
+    position: absolute;
+    top: -18px;
+    left: 10px;
+    z-index: 5;
+    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.10);
+    border: none;
+}
+
+
+
 /* Calendar Body */
 .ant-picker-calendar {
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-radius: 22px;
+    overflow: visible;
+    background: rgba(255, 255, 255, 0.40);
+    box-shadow: 0 8px 36px rgba(24, 144, 255, 0.10);
+    padding: 18px 18px 32px 18px;
+    border: 1.5px solid rgba(200, 220, 255, 0.14);
+    margin-top: 12px;
+    transition: box-shadow 0.3s;
 }
+
+.ant-picker-calendar:hover {
+    box-shadow: 0 16px 48px rgba(24, 144, 255, 0.14);
+}
+
 
 .custom-calendar {
     position: relative;
@@ -698,6 +1277,7 @@ td {
 }
 
 .ant-picker-calendar-date-content {
+    width: 100% !important;
     height: auto !important;
     position: relative;
     max-height: 80px;
@@ -715,10 +1295,10 @@ td {
     background: transparent;
 }
 
-.ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
+/* .ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-}
+} */
 
 .task-list {
     width: 100%;
@@ -816,13 +1396,15 @@ td {
 }
 
 .ant-modal-content {
-    border-radius: var(--border-radius) !important;
-    box-shadow: var(--box-shadow) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 40px rgba(24, 144, 255, 0.11) !important;
     overflow: hidden;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-    animation: fadeIn 0.3s ease-out;
-    border: 1px solid rgba(240, 240, 240, 0.9) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    animation: fadeIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1.5px solid rgba(200, 220, 255, 0.18) !important;
 }
+
 
 .ant-modal-wrap {
     backdrop-filter: blur(6px);
