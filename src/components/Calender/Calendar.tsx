@@ -126,10 +126,17 @@ useEffect(() => {
     const tasksForDate = tasks.filter((task) => task.date === date);
     const today = new Date().toISOString().split('T')[0];
     const isToday = date === today;
+    const hasOverdue = tasksForDate.some(task => task.status === 2);
+    const hasUrgent = tasksForDate.some(task => task.status === 1);
+    const allCompleted = tasksForDate.length > 0 && tasksForDate.every(task => task.status === 3);
+    
+    // Get day of month and determine if it's a weekend
+    const dayOfMonth = value.date();
+    const isWeekend = value.day() === 0 || value.day() === 6; // 0 is Sunday, 6 is Saturday
     
     return (
       <div 
-        className={`calendar-cell ${isToday ? 'today-cell' : ''}`}
+        className={`calendar-cell  ${isToday ? 'today-cell' : ''} ${hasOverdue ? 'has-overdue' : ''} ${hasUrgent ? 'has-urgent' : ''} ${allCompleted ? 'all-completed' : ''} ${isWeekend ? 'weekend-cell' : ''}`}
         onClick={(e) => {
           e.stopPropagation();
           const formattedDate = value.format("YYYY-MM-DD");
@@ -138,34 +145,52 @@ useEffect(() => {
           setIsModalVisible(true);
         }}
       >
+        {/* <div className="date-indicator">{dayOfMonth}</div> */}
+        
         {tasksForDate.length ? (
-          <List
-            size="small"
-            className="task-list"
-            dataSource={tasksForDate}
-            renderItem={(item) => (
-              <List.Item 
-                id={item.id} 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTaskClick(e, item);
-                }} 
-                className={`task-item status-${item.status}`}
-              >
-                <Badge
-                  status={
-                    item.status == 1
-                      ? "warning"
-                      : item.status == 2
-                      ? "error"
-                      : "success"
-                  }
-                  text={item.title}
-                  className="truncate"
+          <div className="task-container">
+            {tasksForDate.length > 0 && (
+              <div className="task-count">
+                <Badge 
+                  count={tasksForDate.length} 
+                  style={{ 
+                    backgroundColor: hasOverdue ? '#ff4d4f' : hasUrgent ? '#faad14' : allCompleted ? '#52c41a' : '#1890ff',
+                    boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.8)'
+                  }} 
                 />
-              </List.Item>
+              </div>
             )}
-          />
+            <List
+              size="small"
+              className="task-list"
+              dataSource={tasksForDate.slice(0, 3)} // Limit to 3 tasks for better display
+              renderItem={(item) => (
+                <List.Item 
+                  id={item.id} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTaskClick(e, item);
+                  }} 
+                  className={`task-item status-${item.status}`}
+                >
+                  <Badge
+                    status={
+                      item.status === 3
+                        ? "success"
+                        : item.status === 1
+                        ? "warning"
+                        : "error"
+                    }
+                    text={<span className="task-title">{item.title}</span>}
+                    className="task-badge"
+                  />
+                </List.Item>
+              )}
+            />
+            {tasksForDate.length > 3 && (
+              <div className="more-tasks">+{tasksForDate.length - 3} more</div>
+            )}
+          </div>
         ) : (
           <div className="empty-cell">
             <PlusOutlined className="add-task-icon" />
