@@ -1,20 +1,18 @@
 "use client";
-import React from 'react';
-import Tasks from '../../../components/Tasks';
+// next/dynamic with ssr:false must be inside a Client Component (Next.js 15 rule).
+// Recoil does not support server rendering.
+import dynamic from 'next/dynamic';
 
-const TasksPage: React.FC = () => {
+const Tasks = dynamic(() => import('@/components/Tasks'), { ssr: false });
+
+export default function TasksPage() {
   return (
-    <div className='mx-4 mt-5 text-left'>
-      <div className='bg-white h-max shadow-lg rounded-lg'>
-        <h1 className='text-center  text-blue-600  py-3 rounded-2xl mb-5'>Tasks</h1>
+    <div className="tasks-page">
+      <div className="tasks-page-header">
+        <h1>All Tasks</h1>
+        <p>A chronological list of every task across all dates.</p>
       </div>
-      <div className='bg-white h-max shadow-lg rounded-lg p-4 mb-3'>
-<Tasks />
-
-      </div>
-      
+      <Tasks />
     </div>
   );
-};
-
-export default TasksPage;
+}

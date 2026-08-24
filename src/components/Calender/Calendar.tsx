@@ -3,110 +3,81 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, Modal, Badge, List, Spin, Button, Typography, Empty } from "antd";
 import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
-import { useRecoilState } from "recoil";
-import { tasksState, Task, Status } from "../../state/tasks";
-import { useQuery } from "react-query";
+import { useTasksStore, Task, StatusKey } from "../../state/tasks";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import "./style.css";
-import RadioComponent from "../RadioGroup";
 import CalenderForm from "./FormCalender";
 
 const { Title, Text } = Typography;
 
+const fetchTasks = async (): Promise<Task[]> => {
+  const { data } = await axios.get<Task[]>("/api");
+  return data;
+};
+
 const CalendarComponent: React.FC = () => {
-  const [tasks, setTasks] = useRecoilState(tasksState);
+  const { tasks, setTasks } = useTasksStore();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [formData, setFormData] = useState<Task | undefined>(undefined);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
-  const [statusTask, setStatusTask] = useState<keyof typeof Status | undefined>(undefined);
-  const [currentMonthTasks, setCurrentMonthTasks] = useState<number>(0);
+  const [currentMonthTasks, setCurrentMonthTasks] = useState(0);
 
-  const { data: posts, error, isLoading } = useQuery("postsData", retrievePosts);
+  const { data: posts, error, isLoading } = useQuery({
+    queryKey: ["postsData"],
+    queryFn: fetchTasks,
+  });
 
-  const changedValues = (changedValues: Partial<Task>, allValues: Task) => {
-    setFormData({
-      ...selectedTask,
-      ...allValues,
-      date: selectedDate || selectedTask?.date || "",
-    });
-  };
-  
-  // Initialize form data with selected date when modal opens
+  // Seed store with API tasks (deduped by id)
   useEffect(() => {
-    if (isModalVisible && selectedDate) {
-      if (selectedTask) {
-        // Editing existing task
-        setFormData({
-          ...selectedTask,
-          date: selectedDate,
-        });
-      } else {
-        // New task with selected date
-        setFormData({
-          id: String(new Date().getTime()),
-          title: "",
-          desc: "",
-          date: selectedDate,
-          status: 1, // Default to waiting status
-        });
-      }
-    }
-  }, [isModalVisible, selectedDate, selectedTask]);
-
-useEffect(() => {
-  if (posts) {
-    setTasks((prevTasks) => {
-      const taskIds = new Set(prevTasks.map((task) => task.id));
-      const newTasks = [
-        ...prevTasks,
-        ...posts.filter((task: Task) => !taskIds.has(task.id)),
-      ];
-      return newTasks;
+    if (!posts?.length) return;
+    setTasks((prev) => {
+      const existingIds = new Set(prev.map((t) => t.id));
+      const incoming = posts.filter((t) => !existingIds.has(t.id));
+      return incoming.length ? [...prev, ...incoming] : prev;
     });
-  }
-}, [posts, setTasks]);
+  }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-// Calculate number of tasks for the current month
-useEffect(() => {
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  
-  const firstDayStr = firstDay.toISOString().split('T')[0];
-  const lastDayStr = lastDay.toISOString().split('T')[0];
-  
-  const count = tasks.filter(task => {
-    return task.date >= firstDayStr && task.date <= lastDayStr;
-  }).length;
-  
-  setCurrentMonthTasks(count);
-}, [tasks]);
+  // Re-init form data when modal opens
+  useEffect(() => {
+    if (!isModalVisible) return;
+    if (selectedTask) {
+      setFormData({ ...selectedTask, date: selectedDate ?? selectedTask.date });
+    } else {
+      setFormData({
+        id: String(Date.now()),
+        title: "",
+        desc: "",
+        date: selectedDate ?? new Date().toISOString().split("T")[0],
+        status: 1 as StatusKey,
+      });
+    }
+  }, [isModalVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Count tasks in the current calendar month
+  useEffect(() => {
+    const today = new Date();
+    const prefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    setCurrentMonthTasks(tasks.filter((t) => t.date.startsWith(prefix)).length);
+  }, [tasks]);
 
-  const onSelect = (date: any) => {
-    const formattedDate = date.format("YYYY-MM-DD");
-    setSelectedDate(formattedDate);
-    // When clicking on the cell itself (not a task), always create a new task
-    setSelectedTask(undefined); // Clear any selected task to ensure we're creating a new one
+  const openModal = (date: string, task?: Task) => {
+    setSelectedDate(date);
+    setSelectedTask(task);
     setIsModalVisible(true);
   };
 
   const handleOk = () => {
-    if (formData) {
-      if (selectedTask) {
-        // Edit existing task
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === selectedTask.id ? { ...formData, id: task.id } : task
-          )
-        );
-      } else {
-        // Add new task
-        setTasks([...tasks, { ...formData, id: String(new Date().getTime()) }]);
-      }
-      setIsModalVisible(false);
+    if (!formData) return;
+    if (selectedTask) {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === selectedTask.id ? { ...formData, id: t.id } : t)),
+      );
+    } else {
+      setTasks((prev) => [...prev, { ...formData, id: String(Date.now()) }]);
     }
+    setIsModalVisible(false);
   };
 
   const handleCancel = () => {
@@ -114,72 +85,63 @@ useEffect(() => {
     setSelectedTask(undefined);
   };
 
-  const onTaskClick = (e: React.MouseEvent, task: Task) => {
-    e.stopPropagation(); // Prevent the cell's onSelect from being triggered
-    setSelectedDate(task.date);
-    setSelectedTask(task);
-    setIsModalVisible(true);
-  };
-
-  const dateCellRender = (value: any) => {
+  const dateCellRender = (value: { format: (f: string) => string; day: () => number }) => {
     const date = value.format("YYYY-MM-DD");
-    const tasksForDate = tasks.filter((task) => task.date === date);
-    const today = new Date().toISOString().split('T')[0];
+    const tasksForDate = tasks.filter((t) => t.date === date);
+    const today = new Date().toISOString().split("T")[0];
     const isToday = date === today;
-    const hasOverdue = tasksForDate.some(task => task.status === 2);
-    const hasUrgent = tasksForDate.some(task => task.status === 1);
-    const allCompleted = tasksForDate.length > 0 && tasksForDate.every(task => task.status === 3);
-    
-    // Get day of month and determine if it's a weekend
-    const dayOfMonth = value.date();
-    const isWeekend = value.day() === 0 || value.day() === 6; // 0 is Sunday, 6 is Saturday
-    
+    const isWeekend = value.day() === 0 || value.day() === 6;
+
+    const hasOverdue = tasksForDate.some((t) => Number(t.status) === 2);
+    const hasUrgent = tasksForDate.some((t) => Number(t.status) === 1);
+    const allCompleted =
+      tasksForDate.length > 0 && tasksForDate.every((t) => Number(t.status) === 3);
+
+    const badgeColor = hasOverdue ? "#ff4d4f" : allCompleted ? "#52c41a" : hasUrgent ? "#faad14" : "#1890ff";
+
     return (
-      <div 
-        className={`calendar-cell  ${isToday ? 'today-cell' : ''} ${hasOverdue ? 'has-overdue' : ''} ${hasUrgent ? 'has-urgent' : ''} ${allCompleted ? 'all-completed' : ''} ${isWeekend ? 'weekend-cell' : ''}`}
+      <div
+        className={[
+          "calendar-cell",
+          isToday && "today-cell",
+          hasOverdue && "has-overdue",
+          hasUrgent && "has-urgent",
+          allCompleted && "all-completed",
+          isWeekend && "weekend-cell",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         onClick={(e) => {
           e.stopPropagation();
-          const formattedDate = value.format("YYYY-MM-DD");
-          setSelectedDate(formattedDate);
-          setSelectedTask(undefined);
-          setIsModalVisible(true);
+          openModal(date);
         }}
       >
-        {/* <div className="date-indicator">{dayOfMonth}</div> */}
-        
-        {tasksForDate.length ? (
+        {tasksForDate.length > 0 ? (
           <div className="task-container">
-            {tasksForDate.length > 0 && (
-              <div className="task-count">
-                <Badge 
-                  count={tasksForDate.length} 
-                  style={{ 
-                    backgroundColor: hasOverdue ? '#ff4d4f' : hasUrgent ? '#faad14' : allCompleted ? '#52c41a' : '#1890ff',
-                    boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.8)'
-                  }} 
-                />
-              </div>
-            )}
+            <div className="task-count">
+              <Badge
+                count={tasksForDate.length}
+                style={{ backgroundColor: badgeColor, boxShadow: "0 0 0 2px rgba(255,255,255,0.8)" }}
+              />
+            </div>
             <List
               size="small"
               className="task-list"
-              dataSource={tasksForDate.slice(0, 3)} // Limit to 3 tasks for better display
+              dataSource={tasksForDate.slice(0, 3)}
               renderItem={(item) => (
-                <List.Item 
-                  id={item.id} 
+                <List.Item
+                  id={item.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onTaskClick(e, item);
-                  }} 
-                  className={`task-item status-${item.status}`}
+                    openModal(item.date, item);
+                  }}
+                  className={`task-item status-${Number(item.status)}`}
                 >
                   <Badge
                     status={
-                      item.status === 3
-                        ? "success"
-                        : item.status === 1
-                        ? "warning"
-                        : "error"
+                      Number(item.status) === 3 ? "success"
+                        : Number(item.status) === 2 ? "error"
+                          : "warning"
                     }
                     text={<span className="task-title">{item.title}</span>}
                     className="task-badge"
@@ -211,33 +173,20 @@ useEffect(() => {
             <Text type="secondary">Tasks This Month</Text>
             <Text strong>{currentMonthTasks}</Text>
           </div>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={() => {
-              const today = new Date().toISOString().split('T')[0];
-              setSelectedDate(today);
-              setSelectedTask(undefined);
-              // Reset form data first to clear any previous values
-              setFormData({
-                id: String(new Date().getTime()),
-                title: "",
-                desc: "", // Include required desc field
-                date: today,
-                status: 1 // Use valid status value (waiting)
-              });
-              setIsModalVisible(true);
-            }}
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => openModal(new Date().toISOString().split("T")[0])}
           >
             Add Task
           </Button>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="loading-container">
           <Spin size="large" />
-          <Text className="loading-text">Loading your calendar...</Text>
+          <Text className="loading-text">Loading your calendar…</Text>
         </div>
       ) : error ? (
         <div className="error-container">
@@ -248,11 +197,11 @@ useEffect(() => {
         <Calendar
           className="custom-calendar"
           fullscreen={false}
-          onSelect={onSelect}
+          onSelect={(date) => openModal(date.format("YYYY-MM-DD"))}
           cellRender={dateCellRender}
         />
       )}
-      
+
       <Modal
         title={selectedTask ? "Edit Task" : "Add Task"}
         open={isModalVisible}
@@ -261,17 +210,22 @@ useEffect(() => {
         centered
         className="task-modal"
         destroyOnClose
+        okText={selectedTask ? "Save Changes" : "Add Task"}
       >
         {selectedDate ? (
-          <CalenderForm 
-            onFormChange={changedValues} 
-            initialValues={selectedTask || { 
-              id: String(new Date().getTime()),
-              title: "",
-              desc: "",
-              date: selectedDate,
-              status: 1
-            }}
+          <CalenderForm
+            onFormChange={(_changed, all) =>
+              setFormData({ ...formData!, ...all, date: selectedDate })
+            }
+            initialValues={
+              selectedTask ?? {
+                id: String(Date.now()),
+                title: "",
+                desc: "",
+                date: selectedDate,
+                status: 1 as StatusKey,
+              }
+            }
           />
         ) : (
           <Empty description="No date selected" />
@@ -279,16 +233,6 @@ useEffect(() => {
       </Modal>
     </div>
   );
-};
-
-const retrievePosts = async () => {
-  try {
-    const response = await axios.get("/api");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    throw error;
-  }
 };
 
 export default CalendarComponent;

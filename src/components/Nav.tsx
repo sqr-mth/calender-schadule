@@ -1,41 +1,51 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
-import { Menu, MenuProps } from 'antd';
+import { Menu, type MenuProps } from 'antd';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { CalendarOutlined, UnorderedListOutlined } from '@ant-design/icons';
+
+const NAV_ITEMS: MenuProps['items'] = [
+  {
+    key: 'calendar',
+    icon: <CalendarOutlined />,
+    label: <Link href="/calender">Calendar</Link>,
+  },
+  {
+    key: 'tasks',
+    icon: <UnorderedListOutlined />,
+    label: <Link href="/tasks">Tasks</Link>,
+  },
+];
+
+const ROUTE_MAP: Record<string, string> = {
+  '/': 'calendar',
+  '/calender': 'calendar',
+  '/tasks': 'tasks',
+};
 
 const Nav: React.FC = () => {
   const pathname = usePathname();
-  const [current, setCurrent] = useState('');
-  
-  // Update current tab based on pathname whenever pathname changes or on component mount
+  const [current, setCurrent] = useState('calendar');
+
   useEffect(() => {
-    // Map routes to tab keys
-    const routeToTabMap: Record<string, string> = {
-      '/': 'calendar', // Default for root path
-      '/calender': 'calendar',
-      '/tasks': 'tasks',
-    };
-    
-    // Get the current tab key based on the pathname
-    const tabKey = routeToTabMap[pathname] || pathname.replace('/', '');
-    setCurrent(tabKey);
+    setCurrent(ROUTE_MAP[pathname] ?? pathname.replace('/', ''));
   }, [pathname]);
-  
-  const onClick: MenuProps['onClick'] = (e) => {
-    console.log('click ', e);
-    setCurrent(e.key);
-  };
 
   return (
-    <Menu mode="horizontal" selectedKeys={[current]} onClick={onClick}>
-      <Menu.Item key="calendar">
-        <Link href="/calender">Calendar</Link>
-      </Menu.Item>
-      <Menu.Item key="tasks">
-        <Link href="/tasks">Tasks</Link>
-      </Menu.Item>
-    </Menu>
+    <header className="nav-header">
+      <div className="nav-logo">
+        <CalendarOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+        <span>Scheduler</span>
+      </div>
+      <Menu
+        mode="horizontal"
+        selectedKeys={[current]}
+        items={NAV_ITEMS}
+        style={{ flex: 1, minWidth: 0, borderBottom: 'none', background: 'transparent' }}
+      />
+    </header>
   );
 };
 

@@ -1,32 +1,41 @@
-import { atom, selector } from 'recoil';
-import { recoilPersist } from 'recoil-persist';
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-const { persistAtom } = recoilPersist();
+export const Status = {
+  1: 'Waiting',
+  2: 'Problem',
+  3: 'Done',
+} as const;
 
+export type StatusKey = 1 | 2 | 3;
 
-export const Status= {
-  1: 'waiting',
-  2: 'problem',
-  3: 'done'
-};
 export interface Task {
   id: string;
-  title:string;
+  title: string;
   date: string;
   desc: string;
-  status?:keyof typeof Status;
+  status?: StatusKey;
 }
 
-export const tasksState = atom<Task[]>({
-  key: 'tasksState',
-  default: [],
-  effects_UNSTABLE: [persistAtom],
-});
+interface TasksStore {
+  tasks: Task[];
+  setTasks: (updater: Task[] | ((prev: Task[]) => Task[])) => void;
+}
 
-export const getTasksState = selector({
-  key: 'getTasksState', 
-  get: ({get}) => {
-    const data = get(tasksState);
-    return data;
-  },
-});
+export const useTasksStore = create<TasksStore>()(
+  persist(
+    (set) => ({
+      tasks: [],
+      setTasks: (updater) =>
+        set((state) => ({
+          tasks: typeof updater === 'function' ? updater(state.tasks) : updater,
+        })),
+    }),
+    {
+      name: 'tasks-storage',
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined' ? localStorage : ({} as Storage),
+      ),
+    },
+  ),
+);

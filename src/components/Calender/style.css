@@ -1,1529 +1,468 @@
-/* Modern Calendar Styling with Persian/Middle Eastern Design Influence */
+/* ─────────────────────────────────────────────
+   Calendar – design tokens
+   ───────────────────────────────────────────── */
 :root {
-    --primary-color: #1890ff;
-    --secondary-color: #52c41a;
-    --accent-color: #722ed1;
-    --warning-color: #faad14;
-    --error-color: #ff4d4f;
-    --border-radius: 16px;
-    --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    --gradient-primary: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-    --gradient-accent: linear-gradient(135deg, #722ed1 0%, #531dab 100%);
-    --gradient-bg: linear-gradient(135deg, #f8fafd 0%, #f1f5fa 100%);
-    --transition-slow: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    --transition-normal: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    --transition-fast: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --c-primary: #1890ff;
+  --c-primary-dark: #096dd9;
+  --c-success: #52c41a;
+  --c-warning: #faad14;
+  --c-error: #ff4d4f;
+  --c-accent: #722ed1;
+  --c-bg: linear-gradient(135deg, #f8fafd 0%, #e3ecff 100%);
+  --c-cell-bg: rgba(255, 255, 255, 0.97);
+  --c-cell-shadow: 0 4px 20px rgba(24, 144, 255, 0.08), 0 1px 6px rgba(114, 46, 209, 0.04);
+  --r-card: 14px;
+  --r-cell: 18px;
+  --transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+/* ─────────────────────────────────────────────
+   Animations
+   ───────────────────────────────────────────── */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.4);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(24, 144, 255, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
-    }
+  0%   { box-shadow: 0 0 0 0   rgba(24, 144, 255, 0.35); }
+  70%  { box-shadow: 0 0 0 8px rgba(24, 144, 255, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(24, 144, 255, 0); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes borderPulse {
-    0% {
-        border-color: rgba(24, 144, 255, 0.7);
-    }
-
-    50% {
-        border-color: rgba(24, 144, 255, 0.3);
-    }
-
-    100% {
-        border-color: rgba(24, 144, 255, 0.7);
-    }
-}
-
-@keyframes floatingGradient {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
+/* ─────────────────────────────────────────────
+   Wrapper
+   ───────────────────────────────────────────── */
 .calendar-container {
-    min-height: 100vh;
-    min-width: 100vw;
-    width: 100vw;
-    height: 100vh;
-    padding: 0;
-    margin: 0;
-    background: linear-gradient(135deg, #f8fafd 0%, #e3ecff 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: stretch;
-    box-shadow: none;
-    border-radius: 0;
-    border: none;
-    overflow: hidden;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--c-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.calendar-container:hover {
-    box-shadow: 0 18px 60px rgba(24, 144, 255, 0.16), 0 4px 16px rgba(114, 46, 209, 0.09);
-}
-
-.calendar-container::before,
-.calendar-container::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    z-index: 0;
-}
-
-.calendar-container::before {
-    top: -70px;
-    right: -70px;
-    width: 230px;
-    height: 230px;
-    background: radial-gradient(circle, rgba(114, 46, 209, 0.09) 0%, rgba(114, 46, 209, 0) 70%);
-}
-
-.calendar-container::after {
-    bottom: -70px;
-    left: -70px;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, rgba(24, 144, 255, 0.07) 0%, rgba(24, 144, 255, 0) 70%);
-}
-
-
-.calendar-container:hover {
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
-}
-
-.calendar-container::before {
-    content: "";
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(114, 46, 209, 0.08) 0%, rgba(114, 46, 209, 0) 70%);
-    border-radius: 50%;
-    z-index: 0;
-}
-
-.calendar-container::after {
-    content: "";
-    position: absolute;
-    bottom: -50px;
-    left: -50px;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(24, 144, 255, 0.06) 0%, rgba(24, 144, 255, 0) 70%);
-    border-radius: 50%;
-    z-index: 0;
-}
-
-/* Decorative elements */
-.calendar-container .decoration-dot {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(24, 144, 255, 0.15);
-    filter: blur(2px);
-    z-index: 0;
-}
-
-.calendar-container .decoration-dot:nth-child(1) {
-    top: 10%;
-    left: 15%;
-    width: 8px;
-    height: 8px;
-}
-
-.calendar-container .decoration-dot:nth-child(2) {
-    top: 20%;
-    right: 20%;
-    width: 12px;
-    height: 12px;
-    background: rgba(82, 196, 26, 0.15);
-}
-
-.calendar-container .decoration-dot:nth-child(3) {
-    bottom: 15%;
-    right: 10%;
-    width: 10px;
-    height: 10px;
-    background: rgba(250, 173, 20, 0.2);
-}
-
-/* Calendar Header with Stats and Button */
+/* ─────────────────────────────────────────────
+   Header bar
+   ───────────────────────────────────────────── */
 .calendar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 36px 16px 36px;
-    border-bottom: 1.5px solid rgba(200, 220, 255, 0.23);
-    border-radius: 24px 24px 0 0;
-    background: rgba(240, 245, 255, 0.85);
-    box-shadow: 0 2px 18px rgba(24, 144, 255, 0.05);
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px 16px;
+  background: rgba(240, 245, 255, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(200, 220, 255, 0.25);
+  position: relative;
+  z-index: 2;
+  animation: fadeIn 0.5s ease;
 }
 
-
-.calendar-header h4 {
-    font-family: 'Poppins', Arial, sans-serif;
-    font-weight: 900;
-    font-size: 2.3rem;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
-    background-size: 200% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    margin: 0;
-    letter-spacing: 1px;
-    animation: floatingGradient 7s ease infinite;
-    position: relative;
-    display: inline-block;
-    text-align: center;
-    filter: drop-shadow(0 2px 8px rgba(24, 144, 255, 0.06));
-}
-
-
-.calendar-header h4::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 3px;
-    background: var(--gradient-primary);
-    border-radius: 3px;
-}
-
-.calendar-header .ant-btn {
-    border-radius: 8px !important;
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02) !important;
-    height: 38px !important;
-    padding: 0 16px !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-}
-
-.ant-btn-primary {
-    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 12px rgba(24, 144, 255, 0.08) !important;
-    border: none !important;
-    transition: box-shadow 0.22s;
-}
-
-.ant-btn-primary:hover {
-    box-shadow: 0 6px 20px rgba(24, 144, 255, 0.13) !important;
-    filter: brightness(1.07);
-}
-
-
-.ant-btn:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-.calendar-header .anticon {
-    margin-right: 10px;
-    color: #1890ff;
-    font-size: 22px;
-    text-align: center;
+.calendar-header h4.ant-typography {
+  font-weight: 800;
+  font-size: 1.6rem;
+  background: linear-gradient(90deg, var(--c-primary), var(--c-success), var(--c-accent));
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  margin: 0;
+  animation: gradientShift 6s ease infinite;
 }
 
 .calendar-summary {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-
-@media (max-width: 900px) {
-    .calendar-container {
-        min-width: 100vw;
-        min-height: 100vh;
-        padding: 0;
-        border-radius: 0;
-    }
-
-    .ant-picker-calendar {
-        padding: 2vw 1vw 8vw 1vw;
-        border-radius: 0;
-    }
-
-    .ant-picker-cell-inner {
-        min-width: 70px;
-        min-height: 70px;
-        font-size: 1rem;
-        padding: 6px 4px 4px 4px;
-        border-radius: 10px;
-    }
-
-    .task-container {
-        min-height: 18px;
-        padding: 2px 0 0 0;
-        border-radius: 8px;
-    }
-}
-
-@media (max-width: 600px) {
-    .calendar-container {
-        min-width: 100vw;
-        min-height: 100vh;
-        padding: 0;
-        border-radius: 0;
-    }
-
-    .ant-picker-calendar {
-        padding: 0.5vw 0.5vw 8vw 0.5vw;
-        border-radius: 0;
-    }
-
-    .ant-picker-cell-inner {
-        min-width: 44px;
-        min-height: 44px;
-        font-size: 0.97rem;
-        padding: 3px 2px 2px 2px;
-        border-radius: 8px;
-    }
-
-    .task-container {
-        min-height: 10px;
-        padding: 1px 0 0 0;
-        border-radius: 6px;
-    }
-
-    .task-count {
-        left: 4px;
-        font-size: 0.82rem;
-        padding: 1px 6px;
-    }
-}
-
 
 .stats-card {
-    background: rgba(255, 255, 255, 0.55);
-    border-radius: 18px;
-    padding: 18px 28px;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.07);
-    display: flex;
-    flex-direction: column;
-    min-width: 140px;
-    border: none;
-    transition: box-shadow 0.3s;
-    position: relative;
-    overflow: hidden;
-    animation: fadeIn 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
-    text-align: center;
-    margin: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 10px 20px;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.07);
+  min-width: 120px;
+  transition: var(--transition);
 }
-
 .stats-card:hover {
-    box-shadow: 0 8px 32px rgba(24, 144, 255, 0.11);
-    transform: translateY(-2px) scale(1.03);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.12);
+}
+.stats-card .ant-typography:last-child {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
-.stats-card strong {
-    font-size: 2.1rem;
-    background: var(--gradient-primary);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    margin-top: 8px;
-    font-weight: 800;
-    letter-spacing: 0.8px;
-    text-align: center;
-    filter: drop-shadow(0 2px 6px rgba(24, 144, 255, 0.04));
-}
-
-
-.stats-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--gradient-primary);
-}
-
-.stats-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.stats-card strong {
-    font-size: 24px;
-    background: var(--gradient-primary);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    margin-top: 6px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-align: center;
-}
-
-.stats-card .ant-typography {
-    margin-bottom: 0 !important;
-    text-align: center;
-}
-
+/* ─────────────────────────────────────────────
+   Loading / Error states
+   ───────────────────────────────────────────── */
 .loading-container,
 .error-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 400px;
-    gap: 20px;
-    animation: fadeIn 0.8s ease-out;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 16px;
+  animation: fadeIn 0.6s ease;
+}
+.loading-text { color: #888; }
+
+/* ─────────────────────────────────────────────
+   Ant Design Calendar overrides
+   ───────────────────────────────────────────── */
+.ant-picker-calendar {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.09);
+  border: 1px solid rgba(200, 220, 255, 0.15);
+  margin: 12px 0;
+  overflow: visible;
 }
 
-.loading-container .ant-spin {
-    transform: scale(1.5);
-    margin-bottom: 10px;
-}
-
-.loading-container .ant-spin-dot-item {
-    background-color: var(--primary-color);
-}
-
-.loading-text {
-    margin-top: 12px;
-    color: #888;
-    text-align: center;
-}
-
-/* Calendar Cells Enhancement */
-.calendar-cell {
-    height: 100%;
-    min-height: 100px;
-    width: 100% !important;
-    cursor: pointer;
-    border-radius: 18px;
-    transition: box-shadow 0.3s, background 0.3s;
-    position: relative;
-    overflow: hidden;
-    padding: 0;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    /* border: 1.5px solid rgba(200, 220, 255, 0.16); */
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 60%, rgba(240, 245, 255, 0.82) 100%);
-    box-shadow: 0 2px 16px rgba(24, 144, 255, 0.07), 0 1px 4px rgba(114, 46, 209, 0.03);
-    margin: 0 !important;
-    justify-content: stretch;
-}
-
-
-.calendar-cell:hover {
-    /* bakground-color: rgba(24, 144, 255, 0.08); */
-    transform: translateY(-2px);
-    /* box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); */
-    z-index: 10;
-    /* border-color: rgba(24, 144, 255, 0.3); */
-}
-
-/* Date indicator styling */
-.date-indicator {
-    position: absolute;
-    top: 5px;
-    right: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #888;
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-}
-
-.calendar-cell:hover .date-indicator {
-    transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-    color: var(--primary-color);
-    background-color: white;
-}
-
-/* Task container styling */
-.task-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin-top: 20px;
-    gap: 4px;
-    position: relative;
-}
-
-/* Task count badge */
-.task-count {
-    position: absolute;
-    top: -18px;
-    left: 5px;
-    z-index: 5;
-    transition: all 0.3s ease;
-}
-
-.calendar-cell:hover .task-count {
-    transform: translateY(-2px);
-}
-
-/* Task list styling */
-.task-list {
-    margin-bottom: 0;
-    width: 100%;
-}
-
-.task-item {
-    padding: 6px 14px !important;
-    margin-bottom: 6px !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.82) !important;
-    box-shadow: 0 1.5px 6px rgba(114, 46, 209, 0.04) !important;
-    transition: box-shadow 0.22s, background 0.22s !important;
-    height: auto !important;
-    cursor: pointer !important;
-    border: none !important;
-    position: relative !important;
-    overflow: visible !important;
-}
-
-.task-item:hover {
-    background: #f6faff !important;
-    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.09) !important;
-    transform: translateY(-2px) scale(1.03) !important;
-    z-index: 12;
-}
-
-
-.task-item:hover {
-    background-color: white !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
-    transform: translateY(-1px) !important;
-}
-
-/* More tasks indicator */
-.more-tasks {
-    font-size: 12px;
-    color: #888;
-    text-align: center;
-    padding: 2px 0;
-    font-style: italic;
-    background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 4px;
-    margin-top: 2px;
-}
-
-/* Task title styling */
-.task-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: #333;
-}
-
-.task-badge {
-    width: 100%;
-}
-
-/* Today cell styling */
-.today-cell {
-    background: linear-gradient(135deg, rgba(24, 144, 255, 0.1) 0%, rgba(24, 144, 255, 0.04) 100%);
-    animation: pulse 2s infinite;
-    /* border: 2px solid var(--primary-color); */
-}
-
-.today-cell .date-indicator {
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 700;
-    box-shadow: 0 3px 8px rgba(24, 144, 255, 0.3);
-}
-
-.today-cell::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 100%;
-    background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
-    border-radius: 0 3px 3px 0;
-    animation: borderPulse 2s infinite;
-}
-
-/* Status-based cell styling */
-.has-overdue {
-    box-shadow: inset 0 0 0 2px rgba(255, 77, 79, 0.3);
-}
-
-.has-urgent {
-    box-shadow: inset 0 0 0 2px rgba(250, 173, 20, 0.3);
-}
-
-.all-completed {
-    box-shadow: inset 0 0 0 2px rgba(82, 196, 26, 0.3);
-}
-
-.weekend-cell {
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-.weekend-cell .date-indicator {
-    color: #a0a0a0;
-    font-style: italic;
-}
-
-/* Empty cell styling */
-.empty-cell {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.calendar-cell:hover .empty-cell {
-    opacity: 0.85;
-    transform: scale(1.25) rotate(90deg);
-}
-
-.add-task-icon {
-    font-size: 22px;
-    color: #1890ff;
-    padding: 8px;
-    border-radius: 50%;
-    background-color: rgba(24, 144, 255, 0.1);
-    transition: all 0.3s ease;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-}
-
-.calendar-cell:hover .add-task-icon {
-    background-color: rgba(24, 144, 255, 0.2);
-    transform: rotate(90deg);
-}
-
-/* Task Status Colors */
-.task-item.status-1 {
-    border-left: 4px solid var(--warning-color) !important;
-    box-shadow: inset 1px 0 0 rgba(250, 173, 20, 0.2), 0 2px 5px rgba(250, 173, 20, 0.1) !important;
-}
-
-.task-item.status-2 {
-    border-left: 4px solid var(--error-color) !important;
-    box-shadow: inset 1px 0 0 rgba(255, 77, 79, 0.2), 0 2px 5px rgba(255, 77, 79, 0.1) !important;
-}
-
-.task-item.status-3 {
-    border-left: 4px solid var(--secondary-color) !important;
-    box-shadow: inset 1px 0 0 rgba(82, 196, 26, 0.2), 0 2px 5px rgba(82, 196, 26, 0.1) !important;
-    text-decoration: none;
-}
-
-/* Calendar Header */
 .ant-picker-calendar-header {
-    margin-bottom: 18px !important;
-    padding: 18px 0 10px 0 !important;
-    background: rgba(240, 245, 255, 0.75);
-    border-radius: 18px !important;
-    box-shadow: 0 2px 10px rgba(24, 144, 255, 0.06) !important;
-    text-align: center;
-    justify-content: center !important;
-    display: flex !important;
-    border: none !important;
+  padding: 12px 0 10px !important;
+  background: rgba(240, 245, 255, 0.7) !important;
+  border-radius: 12px !important;
+  margin-bottom: 12px !important;
+  justify-content: center !important;
+  border: none !important;
 }
 
+.ant-picker-calendar-mode-switch { display: none !important; }
 
-.ant-picker-calendar-header button {
-    border-radius: 8px !important;
-    transition: all 0.3s ease;
-    padding: 4px 15px !important;
-    height: 36px !important;
-    text-align: center;
-    justify-content: center !important;
-    display: flex !important;
+.ant-picker-content {
+  table-layout: fixed;
+  width: 100%;
 }
 
-.ant-picker-calendar-header button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+.ant-picker-content th {
+  padding: 6px 0 !important;
+  font-weight: 600 !important;
+  color: #555 !important;
+  text-align: center !important;
 }
 
-.ant-select-selector {
-    border-radius: 8px !important;
-    box-shadow: none !important;
-}
-
-/* Calendar Cells */
-.ant-picker-cell {
-    transition: box-shadow 0.22s, background 0.22s;
-    text-align: center;
-    border-radius: 14px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    position: relative;
-    z-index: 1;
-}
-
-.ant-picker-cell-in-view {
-    background: rgba(255, 255, 255, 0.80);
-    border-radius: 14px;
-    margin: 4px 2px;
-    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.06);
-    text-align: center;
-    border: none;
-}
-
-.ant-picker-cell-selected .ant-picker-cell-inner,
-.ant-picker-cell-range-start .ant-picker-cell-inner,
-.ant-picker-cell-range-end .ant-picker-cell-inner {
-    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-    color: #fff !important;
-    border-radius: 10px;
-    box-shadow: 0 3px 12px rgba(24, 144, 255, 0.13);
-}
-
-.ant-picker-cell:hover .ant-picker-cell-inner {
-    background: rgba(24, 144, 255, 0.10) !important;
-    border-radius: 10px;
-    color: #096dd9 !important;
-}
-
-
+/* Every calendar cell */
 td {
-    overflow: hidden;
-    height: 180px;
-    border: none !important;
+  height: 130px;
+  overflow: hidden;
+  border: none !important;
+}
+
+.ant-picker-cell {
+  background: transparent;
+  border-radius: var(--r-cell);
+  border: none;
+  vertical-align: top;
 }
 
 .ant-picker-cell-in-view {
-    background-color: #ffffff;
-    border-radius: 8px;
-    margin: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    text-align: center;
-}
-
-.ant-picker-cell:hover .ant-picker-cell-inner {
-    background-color: #f0f7ff !important;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.ant-picker-calendar .ant-picker-cell .ant-picker-cell-inner {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    height: auto;
-    width: auto;
-    border-radius: 8px;
-    padding: 6px !important;
-    transition: all 0.3s ease;
-}
-
-/* Today's Cell Highlight */
-.ant-picker-cell-today .ant-picker-cell-inner {
-    border: 2px solid #1890ff !important;
-    text-align: center;
-}
-
-.ant-picker-cell-today .ant-picker-calendar-date-value {
-    color: #1890ff;
-    font-weight: 600;
-    text-align: center;
-    background-color: #e8e5e5;
-}
-
-.ant-picker-calendar-date-value {
-    font-weight: 500 !important;
-    text-align: center !important;
-    background-color: #f7f4f4;
-}
-
-.ant-picker-calendar .ant-picker-content {
-    width: 100%;
-    table-layout: fixed;
-    position: relative;
-    background: rgba(255, 255, 255, 0.55);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 1.5px 8px rgba(24, 144, 255, 0.06);
-    border: none;
-}
-
-
-.ant-picker-cell-inner {
-    width: 100%;
-    height: 100%;
-    min-height: 110px;
-    min-width: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    font-size: 1.12rem;
-    font-weight: 600;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.97);
-    box-shadow: 0 4px 24px rgba(24, 144, 255, 0.10), 0 1.5px 8px rgba(114, 46, 209, 0.06);
-    transition: box-shadow 0.22s, background 0.22s, transform 0.18s;
-    z-index: 2;
-    margin: 4px 2px;
-    padding: 0;
-    border: none;
-    gap: 0;
-    overflow: hidden;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: var(--r-cell);
+  margin: 2px;
+  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.05);
 }
 
 .ant-picker-cell,
 .ant-picker-cell-inner {
-    border: none !important;
+  border: none !important;
 }
 
-
-/* Center SVG in empty cell */
-.empty-cell {
-    width: 100%;
-    height: 100%;
-    min-height: 110px;
-    min-width: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.18s;
+.ant-picker-cell-inner {
+  width: 100%;
+  height: 100%;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-cell);
+  background: var(--c-cell-bg);
+  box-shadow: var(--c-cell-shadow);
+  padding: 0 !important;
+  transition: var(--transition);
+  overflow: hidden;
 }
 
-.empty-cell svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-    margin: 0 auto;
-    color: #1890ff;
-    opacity: 0.85;
-    transition: color 0.18s, opacity 0.18s, transform 0.18s;
+.ant-picker-cell-inner:hover {
+  background: rgba(240, 247, 255, 0.98);
+  box-shadow: 0 8px 28px rgba(24, 144, 255, 0.13);
+  transform: translateY(-2px) scale(1.015);
+  z-index: 5;
 }
 
-.empty-cell:hover svg {
-    color: #1890ff;
-    opacity: 1;
-    transform: scale(1.08);
+/* Today highlight */
+.ant-picker-cell-today .ant-picker-cell-inner {
+  border: 2px solid var(--c-primary) !important;
+  background: rgba(24, 144, 255, 0.07) !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+  animation: pulse 2s infinite;
 }
 
-
-/* Centered + button for add-task */
-.add-task-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #e3ecff 30%, #1890ff 100%);
-    color: #1890ff;
-    border-radius: 50%;
-    font-size: 2rem;
-    font-weight: 700;
-    border: none;
-    box-shadow: 0 2px 10px rgba(24, 144, 255, 0.10);
-    margin: 0 auto;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.add-task-btn:hover {
-    background: linear-gradient(135deg, #1890ff 30%, #52c41a 100%);
-    color: #fff;
-    box-shadow: 0 4px 18px rgba(24, 144, 255, 0.18);
-}
-
-.ant-picker-calendar-date {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 8px;
-    min-height: 80px;
-    position: relative;
-    padding: 18px 14px 14px 14px;
-    height: 100%;
-}
-
-.ant-picker-calendar-date-content {
-    width: 100% !important;
-    min-height: 32px;
-    max-height: 80px;
-    position: relative;
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    overflow-y: auto;
-    background: transparent;
-    border-radius: 12px;
-    padding: 0;
-    scrollbar-width: thin;
-    scrollbar-color: #e0e7ff #ffffff;
-}
-
-.ant-picker-calendar-date-content::-webkit-scrollbar {
-    width: 6px;
-    background: transparent;
-}
-
-.ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(120deg, #e0e7ff 40%, #c6d6ff 100%);
-    border-radius: 8px;
-    min-height: 24px;
-}
-
-.ant-picker-calendar-date-content::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 8px;
-}
-
-/* Task container and item redesign */
-.task-container {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    background: none;
-    border-radius: 0;
-    box-shadow: none;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    position: relative;
-    z-index: 3;
-    border: none;
-    overflow: visible;
-}
-
-.task-item {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.96) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 2px 12px rgba(24, 144, 255, 0.08), 0 1.5px 6px rgba(114, 46, 209, 0.04) !important;
-    padding: 10px 14px !important;
-    margin-bottom: 0 !important;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #222;
-    border: 1.5px solid #e6f0ff !important;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: box-shadow 0.22s, background 0.22s !important;
-    cursor: pointer !important;
-    position: relative !important;
-    overflow: visible !important;
-}
-
-.task-item:hover {
-    background: #f6faff !important;
-    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.13) !important;
-    transform: translateY(-2px) scale(1.03) !important;
-    z-index: 12;
-}
-
-
-.ant-picker-calendar-date {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 8px;
-    min-height: 80px;
-    position: relative;
-}
-
+/* Date number pill */
 .ant-picker-calendar-date-value {
-    display: inline-block;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1890ff;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.06);
-    padding: 2px 12px;
-    margin-bottom: 0;
-    margin-top: 0;
-    letter-spacing: 0.5px;
-    border: none;
-    transition: background 0.18s, color 0.18s;
-    position: relative;
-    z-index: 3;
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-primary);
+  background: #fff;
+  border-radius: 10px;
+  padding: 2px 10px;
+  margin: 8px auto 0;
+  border: 1px solid rgba(24, 144, 255, 0.15);
+  letter-spacing: 0.3px;
+  align-self: flex-start;
+  margin-left: 8px;
 }
-.ant-picker-cell-today .ant-picker-calendar-date-value {
-    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
-    color: #fff !important;
-    border: none;
-}
-
 
 .ant-picker-cell-today .ant-picker-calendar-date-value {
-    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
-    color: #fff !important;
-    border: none;
+  background: linear-gradient(90deg, var(--c-primary), var(--c-success), var(--c-accent));
+  color: #fff !important;
+  border-color: transparent;
 }
 
+/* Task content area inside a cell */
 .ant-picker-calendar-date-content {
-    width: 100% !important;
-    min-height: 32px;
-    max-height: 80px;
-    position: relative;
-    margin-top: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: transparent;
-    border-radius: 10px;
-    padding: 0;
+  width: 100% !important;
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 6px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(24, 144, 255, 0.15) transparent;
 }
-.ant-picker-calendar-date-content:empty {
-    overflow-y: hidden !important;
-    min-height: 0;
-    max-height: none;
-    scrollbar-width: none !important;
-}
-.ant-picker-calendar-date-content:empty::-webkit-scrollbar {
-    display: none !important;
-}
-
-
-.ant-picker-calendar-date-content::-webkit-scrollbar {
-    width: 6px;
-    background: transparent;
-}
-
+.ant-picker-calendar-date-content::-webkit-scrollbar { width: 4px; }
 .ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(120deg, #e0e7ff 40%, #c6d6ff 100%);
-    border-radius: 8px;
-    min-height: 24px;
+  background: rgba(24, 144, 255, 0.2);
+  border-radius: 4px;
 }
 
-.ant-picker-calendar-date-content::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 8px;
+/* Selected cell */
+.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-dark) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.25) !important;
 }
 
+/* ─────────────────────────────────────────────
+   Calendar cell custom content
+   ───────────────────────────────────────────── */
+.calendar-cell {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  position: relative;
+}
 
-/* Responsive for small screens */
+/* Status ring on the cell wrapper */
+.has-overdue   { box-shadow: inset 0 0 0 2px rgba(255, 77,  79,  0.35) !important; }
+.has-urgent    { box-shadow: inset 0 0 0 2px rgba(250, 173, 20,  0.35) !important; }
+.all-completed { box-shadow: inset 0 0 0 2px rgba(82,  196, 26,  0.35) !important; }
+.weekend-cell  { background-color: rgba(0, 0, 0, 0.012); }
+
+/* Task container */
+.task-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  padding-top: 14px;
+}
+
+.task-count {
+  position: absolute;
+  top: -4px;
+  left: 4px;
+  z-index: 4;
+}
+
+/* Task list (Ant List inside cell) */
+.task-list { width: 100%; margin: 0; }
+
+.task-list .ant-list-item,
+.task-item {
+  padding: 4px 8px !important;
+  margin-bottom: 4px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+.task-item:hover {
+  background: #f0f7ff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 10px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Status left border */
+.task-item.status-1 { border-left: 3px solid var(--c-warning)  !important; }
+.task-item.status-2 { border-left: 3px solid var(--c-error)    !important; }
+.task-item.status-3 { border-left: 3px solid var(--c-success)  !important; }
+
+.task-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #334155;
+  max-width: 100%;
+}
+
+.more-tasks {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 1px 0;
+  font-style: italic;
+}
+
+/* Empty cell add button */
+.empty-cell {
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: var(--transition);
+}
+.calendar-cell:hover .empty-cell {
+  opacity: 1;
+}
+
+.add-task-icon {
+  font-size: 18px;
+  color: var(--c-primary);
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(24, 144, 255, 0.1);
+  transition: var(--transition);
+}
+.calendar-cell:hover .add-task-icon {
+  background: rgba(24, 144, 255, 0.2);
+  transform: rotate(90deg) scale(1.1);
+}
+
+.task-badge { width: 100%; }
+.ant-badge   { width: 100%; }
+.ant-badge-status-dot { width: 7px !important; height: 7px !important; }
+
+/* ─────────────────────────────────────────────
+   Modal
+   ───────────────────────────────────────────── */
+.ant-modal-wrap { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+.ant-modal-content {
+  border-radius: 20px !important;
+  box-shadow: 0 12px 48px rgba(24, 144, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(200, 220, 255, 0.2) !important;
+  animation: fadeIn 0.3s ease;
+}
+
+.ant-modal-header { border-bottom: 1px solid rgba(240, 240, 240, 0.8) !important; background: transparent !important; }
+
+.ant-modal-title {
+  font-weight: 800 !important;
+  font-size: 1.25rem !important;
+  background: linear-gradient(90deg, var(--c-primary), var(--c-success), var(--c-accent));
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent !important;
+  animation: gradientShift 5s ease infinite;
+}
+
+/* ─────────────────────────────────────────────
+   Form inside modal
+   ───────────────────────────────────────────── */
+.ant-form-item-label > label { font-weight: 600; color: #334155; }
+
+.ant-input,
+.ant-input-affix-wrapper {
+  border-radius: 8px !important;
+  border-color: #dbe4f0 !important;
+  background: rgba(250, 250, 252, 0.8) !important;
+  transition: var(--transition) !important;
+}
+.ant-input:focus,
+.ant-input:hover {
+  border-color: var(--c-primary) !important;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.12) !important;
+  background: #fff !important;
+}
+.ant-input-textarea textarea {
+  border-radius: 8px !important;
+  resize: vertical;
+}
+
+.ant-radio-wrapper { font-weight: 500; }
+
+/* ─────────────────────────────────────────────
+   Nav header (shared global)
+   ───────────────────────────────────────────── */
+.nav-header {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 56px;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(200, 220, 255, 0.3);
+  box-shadow: 0 2px 12px rgba(24, 144, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #1e293b;
+  white-space: nowrap;
+  margin-right: 16px;
+  letter-spacing: -0.3px;
+}
+
+/* ─────────────────────────────────────────────
+   Responsive
+   ───────────────────────────────────────────── */
 @media (max-width: 900px) {
-    .ant-picker-cell-inner {
-        min-width: 70px;
-        min-height: 70px;
-        font-size: 1rem;
-        padding: 8px 4px 6px 4px;
-        border-radius: 10px;
-        gap: 6px;
-    }
+  .calendar-header { padding: 14px 16px; }
+  .calendar-header h4.ant-typography { font-size: 1.2rem; }
 
-    .ant-picker-calendar-date {
-        min-height: 54px;
-        gap: 4px;
-    }
-
-    .ant-picker-calendar-date-value {
-        font-size: 1rem;
-        padding: 2px 8px;
-    }
-
-    .ant-picker-calendar-date-content {
-        min-height: 16px;
-        max-height: 34px;
-        gap: 2px;
-        padding: 0;
-    }
+  td { height: 80px; }
+  .ant-picker-cell-inner { min-height: 70px; }
+  .ant-picker-calendar-date-value { font-size: 0.85rem; padding: 1px 7px; }
 }
 
 @media (max-width: 600px) {
-    .ant-picker-cell-inner {
-        min-width: 44px;
-        min-height: 44px;
-        font-size: 0.97rem;
-        padding: 4px 2px 2px 2px;
-        border-radius: 8px;
-        gap: 4px;
-    }
-
-    .ant-picker-calendar-date {
-        min-height: 34px;
-        gap: 2px;
-    }
-
-    .ant-picker-calendar-date-value {
-        font-size: 0.92rem;
-        padding: 1px 5px;
-    }
-
-    .ant-picker-calendar-date-content {
-        min-height: 8px;
-        max-height: 18px;
-        gap: 1px;
-        padding: 0;
-    }
-}
-
-
-.ant-picker-cell-inner:hover {
-    background: rgba(24, 144, 255, 0.09);
-    box-shadow: 0 8px 32px rgba(24, 144, 255, 0.14);
-    transform: translateY(-3px) scale(1.03);
-}
-
-.ant-picker-cell-today .ant-picker-cell-inner {
-    border: 2px solid #1890ff !important;
-    background: rgba(24, 144, 255, 0.08) !important;
-    box-shadow: 0 4px 18px rgba(24, 144, 255, 0.13) !important;
-}
-
-/* Day number badge */
-.ant-picker-calendar-date-value {
-    display: inline-block;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #1890ff;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.06);
-    padding: 2px 10px;
-    margin-bottom: 8px;
-    margin-top: 0;
-    letter-spacing: 0.5px;
-    border: 1.5px solid #e6f0ff;
-    transition: background 0.18s, color 0.18s;
-}
-
-.ant-picker-cell-today .ant-picker-calendar-date-value {
-    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
-    color: #fff !important;
-    border: none;
-}
-
-/* Task container glassy style */
-.task-container {
-    width: 100%;
-    margin-top: 8px;
-    padding: 6px 0 0 0;
-    background: rgba(255, 255, 255, 0.68);
-    border-radius: 14px;
-    box-shadow: 0 2px 16px rgba(24, 144, 255, 0.07);
-    min-height: 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    position: relative;
-    z-index: 3;
-    /* border: 1px solid rgba(200, 220, 255, 0.10); */
-    overflow: visible;
-}
-
-.task-container:empty {
-    background: none;
-    box-shadow: none;
-    border: none;
-    min-height: 0;
-}
-
-/* Task badge style */
-.task-count {
-    position: absolute;
-    top: -18px;
-    left: 10px;
-    z-index: 5;
-    background: linear-gradient(90deg, #1890ff, #52c41a, #722ed1);
-    color: #fff;
-    border-radius: 10px;
-    padding: 2px 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    box-shadow: 0 1.5px 6px rgba(24, 144, 255, 0.10);
-    border: none;
-}
-
-
-
-/* Calendar Body */
-.ant-picker-calendar {
-    border-radius: 22px;
-    overflow: visible;
-    background: rgba(255, 255, 255, 0.40);
-    box-shadow: 0 8px 36px rgba(24, 144, 255, 0.10);
-    padding: 18px 18px 32px 18px;
-    border: 1.5px solid rgba(200, 220, 255, 0.14);
-    margin-top: 12px;
-    transition: box-shadow 0.3s;
-}
-
-.ant-picker-calendar:hover {
-    box-shadow: 0 16px 48px rgba(24, 144, 255, 0.14);
-}
-
-
-.custom-calendar {
-    position: relative;
-    z-index: 1;
-}
-
-.custom-calendar .ant-picker-panel {
-    border-top: none !important;
-}
-
-.custom-calendar .ant-picker-content {
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.custom-calendar .ant-picker-content th {
-    padding: 5px 0 !important;
-    font-weight: 600;
-    color: #333;
-    text-align: center !important;
-}
-
-/* Days of week header styling */
-.ant-picker-calendar-mode-switch {
-    display: none !important;
-}
-
-/* Center alignment for specific elements only */
-.custom-calendar .ant-picker-content th {
-    text-align: center !important;
-}
-
-.task-list .ant-badge-status-text {
-    text-align: center;
-}
-
-.ant-picker-calendar .ant-picker-cell-inner {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Smooth scroll for task lists */
-.ant-list-items::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0.02);
-    border-radius: 4px;
-}
-
-/* Task List Styling */
-.ant-list {
-    padding: 0 4px;
-    text-align: center;
-}
-
-.ant-list-items {
-    max-height: 140px;
-    height: 100%;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    padding-top: 6px;
-    text-align: center;
-}
-
-.ant-picker-calendar-date-content {
-    width: 100% !important;
-    height: auto !important;
-    position: relative;
-    max-height: 80px;
-    overflow-y: auto;
-    margin-top: 4px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
-}
-
-.ant-picker-calendar-date-content::-webkit-scrollbar {
-    width: 4px;
-}
-
-.ant-picker-calendar-date-content::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-/* .ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-} */
-
-.task-list {
-    width: 100%;
-    display: block;
-}
-
-.task-list .ant-list-item {
-    padding: 4px 8px;
-    margin-bottom: 4px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.task-item {
-    width: 100%;
-    display: block;
-}
-
-.task-item .ant-badge {
-    width: 100%;
-    display: block;
-    text-align: center;
-}
-
-.ant-list-item {
-    padding: 6px 8px !important;
-    margin-bottom: 4px !important;
-    border-radius: 8px !important;
-    background-color: rgba(250, 250, 252, 0.95);
-    border: none !important;
-    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-.ant-list-item:hover {
-    background-color: #f0f7ff;
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-    z-index: 10;
-    position: relative;
-}
-
-/* Badge Styling for Tasks */
-.ant-badge {
-    width: 100%;
-}
-
-.ant-badge-status-dot {
-    width: 8px !important;
-    height: 8px !important;
-}
-
-.ant-badge-status-success {
-    background-color: #52c41a;
-    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
-}
-
-.ant-badge-status-warning {
-    background-color: #faad14;
-    box-shadow: 0 0 0 2px rgba(250, 173, 20, 0.2);
-}
-
-.ant-badge-status-error {
-    background-color: #ff4d4f;
-    box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
-}
-
-.ant-badge-status-text {
-    font-size: 12px;
-    font-weight: 500;
-    color: #333;
-    display: block;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 95%;
-    display: block;
-    margin: 0 auto;
-}
-
-/* Modal Styling */
-.ant-modal {
-    top: 10%;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.ant-modal-content {
-    border-radius: 20px !important;
-    box-shadow: 0 8px 40px rgba(24, 144, 255, 0.11) !important;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px);
-    animation: fadeIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1.5px solid rgba(200, 220, 255, 0.18) !important;
-}
-
-
-.ant-modal-wrap {
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-}
-
-.ant-modal-header {
-    border-bottom: 1px solid rgba(240, 240, 240, 0.8) !important;
-    padding: 20px 24px !important;
-    background: transparent !important;
-}
-
-.ant-modal-title {
-    font-weight: 800 !important;
-    font-size: 24px !important;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
-    background-size: 200% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent !important;
-    animation: floatingGradient 5s ease infinite;
-    letter-spacing: 0.5px;
-}
-
-.ant-modal-body {
-    padding: 24px !important;
-}
-
-.ant-modal-footer {
-    border-top: 1px solid rgba(240, 240, 240, 0.8) !important;
-    padding: 16px 24px !important;
-    background-color: rgba(250, 250, 252, 0.5) !important;
-}
-
-.ant-modal-footer button {
-    border-radius: 8px !important;
-    font-weight: 500 !important;
-    padding: 6px 16px !important;
-    height: 38px !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-}
-
-.ant-modal-footer button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.task-modal .ant-modal-footer .ant-btn-primary {
-    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
-    border-color: #1890ff !important;
-}
-
-/* Form Input Styling */
-.ant-form-item-label>label {
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-    margin-bottom: 6px;
-}
-
-.ant-form-item {
-    margin-bottom: 22px !important;
-}
-
-.ant-input {
-    border-radius: 8px !important;
-    padding: 10px 14px !important;
-    height: 42px !important;
-    border: 1px solid rgba(220, 230, 240, 1) !important;
-    background-color: rgba(250, 250, 252, 0.8) !important;
-    transition: all 0.3s ease !important;
-}
-
-.ant-input:focus,
-.ant-input:hover {
-    border-color: #1890ff !important;
-    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.15) !important;
-    background-color: #fff !important;
-}
-
-.ant-form textarea.ant-input {
-    min-height: 80px;
-    resize: vertical;
-}
-
-.ant-radio-button-wrapper {
-    border-radius: 8px !important;
-    margin-right: 10px !important;
-    border: 1px solid #e8e8e8 !important;
-    padding: 0 18px !important;
-    height: 38px !important;
-    line-height: 36px !important;
-    font-weight: 500 !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-}
-
-.ant-radio-button-wrapper:first-child {
-    border-radius: 8px !important;
-}
-
-.ant-radio-button-wrapper:last-child {
-    border-radius: 8px !important;
-}
-
-.ant-radio-button-wrapper:hover {
-    color: #1890ff !important;
-    border-color: #1890ff !important;
-    transform: translateY(-1px);
-}
-
-.ant-radio-button-wrapper-checked {
-    border-color: #1890ff !important;
-    color: #1890ff !important;
-    background-color: rgba(24, 144, 255, 0.08) !important;
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
-    font-weight: 600 !important;
-}
-
-.ant-radio-button-wrapper-checked::before {
-    background-color: #1890ff !important;
+  .calendar-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .calendar-summary { width: 100%; justify-content: space-between; }
+
+  td { height: 60px; }
+  .ant-picker-cell-inner { min-height: 52px; font-size: 0.85rem; }
+  .task-title { font-size: 0.65rem; }
+  .ant-picker-calendar-date-value { font-size: 0.78rem; padding: 1px 5px; }
 }

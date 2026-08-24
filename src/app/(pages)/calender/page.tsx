@@ -1,13 +1,13 @@
+"use client";
+// next/dynamic with ssr:false must be inside a Client Component (Next.js 15 rule).
+// Recoil does not support server rendering.
+import dynamic from 'next/dynamic';
 
-import CalenderComponent from '@/components/Calender/Calendar';
-import React from 'react';
-const CalendarPage: React.FC = () => {
-  return (
-    <div className='mx-4 mt-5 '>
-      <h1 className='text-center bg-blue-600 text-white py-3 rounded-2xl mb-5'>Please select day and set tasks on day</h1>
-      <CalenderComponent />
-    </div>
-  );
-};
+const CalenderComponent = dynamic(
+  () => import('@/components/Calender/Calendar'),
+  { ssr: false },
+);
 
-export default CalendarPage;
+export default function CalendarPage() {
+  return <CalenderComponent />;
+}

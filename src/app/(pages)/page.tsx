@@ -1,10 +1,11 @@
+"use client";
+import dynamic from 'next/dynamic';
 
-import CalendarComponent from '@/components/Calender/Calendar';
+const CalenderComponent = dynamic(
+  () => import('@/components/Calender/Calendar'),
+  { ssr: false },
+);
 
 export default function Home() {
-  return (
-    <div>
-      <CalendarComponent/>
-    </div>
-  );
+  return <CalenderComponent />;
 }

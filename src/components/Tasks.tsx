@@ -1,97 +1,141 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRecoilValue } from 'recoil';
-import { Task, getTasksState } from '@/state/tasks';
-import { List, Input } from 'antd';
-import { useQuery } from 'react-query';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useTasksStore, Task, Status } from '@/state/tasks';
+import { Input, Badge, Empty, Tooltip } from 'antd';
+import {
+  SearchOutlined,
+  DeleteOutlined,
+  CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const retrievePosts = async () => {
-  try {
-    const response = await axios.get("/api");
-    console.log('Data fetched:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
-  }
+const fetchTasks = async (): Promise<Task[]> => {
+  const { data } = await axios.get<Task[]>('/api');
+  return data;
+};
+
+const STATUS_META: Record<number, { label: string; color: string; icon: React.ReactNode }> = {
+  1: { label: 'Waiting', color: '#faad14', icon: <ClockCircleOutlined /> },
+  2: { label: 'Problem', color: '#ff4d4f', icon: <ExclamationCircleOutlined /> },
+  3: { label: 'Done',    color: '#52c41a', icon: <CheckCircleOutlined /> },
 };
 
 const Tasks: React.FC = () => {
-  const [tasksSort, setTasksSort] = useState<{ [date: string]: Task[] }>({});
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  
-  const { data: posts, error, isLoading } = useQuery("postsData", retrievePosts);
-  const recoilTasks = useRecoilValue(getTasksState);
+  const { tasks, setTasks } = useTasksStore();
+  const [searchTerm, setSearchTerm] = useState('');
 
+  const { data: posts } = useQuery({ queryKey: ['postsData'], queryFn: fetchTasks });
+
+  // Seed store with API tasks (same as Calendar)
   useEffect(() => {
-    let combinedTasks: Task[] = [];
-    
-    if (Array.isArray(posts)) {
-      combinedTasks = [...posts];
-    }
+    if (!posts?.length) return;
+    setTasks((prev) => {
+      const ids = new Set(prev.map((t) => t.id));
+      const incoming = posts.filter((t) => !ids.has(t.id));
+      return incoming.length ? [...prev, ...incoming] : prev;
+    });
+  }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    setTasks(combinedTasks);
-  }, [posts]);
-
-  useEffect(() => {
-    let combinedTasks: Task[] = [];
-    
-    if (Array.isArray(recoilTasks)) {
-      combinedTasks = [...tasks, ...recoilTasks];
-    }
-    
-    setTasks(combinedTasks);
-  }, [recoilTasks]);
-
-  useEffect(() => {
-    const groupByTasks = (arr: Task[]) => {
-      return arr.reduce((acc: { [date: string]: Task[] }, item: Task) => {
-        const { date, ...rest } = item;
-        if (!acc[date]) {
-          acc[date] = [];
-        }
-        acc[date].push({ date, ...rest });
-        return acc;
-      }, {});
-    };
-
-    const filteredTasks = tasks.filter(task => 
-      task?.desc?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task?.date?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    setTasksSort(groupByTasks(filteredTasks));
-  }, [tasks, searchTerm]);
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  const handleDelete = (id: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Filter + group by date, sorted ascending
+  const grouped = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const filtered = q
+      ? tasks.filter(
+          (t) =>
+            t.title?.toLowerCase().includes(q) ||
+            t.desc?.toLowerCase().includes(q) ||
+            t.date?.includes(q),
+        )
+      : tasks;
+
+    const map: Record<string, Task[]> = {};
+    for (const task of filtered) {
+      if (!map[task.date]) map[task.date] = [];
+      map[task.date].push(task);
+    }
+    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+  }, [tasks, searchTerm]);
+
   return (
-    <div className="mx-auto">
-      <Input 
-        placeholder="Search tasks..." 
-        value={searchTerm} 
-        onChange={handleSearch} 
-        className="mb-4"
+    <div className="tasks-root">
+      <Input
+        prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+        placeholder="Search by title, description, or date…"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        allowClear
+        className="tasks-search"
+        size="large"
       />
-      {Object.keys(tasksSort).map((date) => (
-        <div key={date} className="bg-blue-100 mb-4 p-4 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-2">{date}</h3>
-          <List
-            itemLayout="horizontal"
-            dataSource={tasksSort[date]}
-            renderItem={(item: Task) => (
-              <List.Item className="border-b border-gray-200 py-2">
-                <List.Item.Meta description={item.desc} />
-              </List.Item>
-            )}
-          />
+
+      {grouped.length === 0 ? (
+        <Empty
+          description={
+            searchTerm
+              ? 'No tasks match your search'
+              : 'No tasks yet — add one from the Calendar!'
+          }
+          className="tasks-empty"
+        />
+      ) : (
+        <div className="tasks-groups">
+          {grouped.map(([date, items]) => (
+            <div key={date} className="task-group">
+              <div className="task-group-header">
+                <CalendarOutlined style={{ color: '#1890ff' }} />
+                <span>{date}</span>
+                <span className="task-group-count">{items.length}</span>
+              </div>
+
+              <div className="task-cards">
+                {items.map((task) => {
+                  const statusNum = Number(task.status) || 1;
+                  const meta = STATUS_META[statusNum] ?? STATUS_META[1];
+
+                  return (
+                    <div key={task.id} className={`task-card status-border-${statusNum}`}>
+                      <div className="task-card-body">
+                        <div className="task-card-title">{task.title || '—'}</div>
+                        {task.desc && (
+                          <div className="task-card-desc">{task.desc}</div>
+                        )}
+                      </div>
+                      <div className="task-card-right">
+                        <Badge
+                          color={meta.color}
+                          text={
+                            <span style={{ fontSize: '0.75rem', color: meta.color, fontWeight: 600 }}>
+                              {meta.label}
+                            </span>
+                          }
+                        />
+                        <Tooltip title="Delete task">
+                          <button
+                            className="task-delete-btn"
+                            onClick={() => handleDelete(task.id)}
+                            aria-label="Delete task"
+                          >
+                            <DeleteOutlined />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };
