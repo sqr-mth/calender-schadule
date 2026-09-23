@@ -36,7 +36,7 @@ const CalenderForm: React.FC<CalenderFormProps> = ({ onFormChange, initialValues
         name="title"
         rules={[{ required: true, message: 'Please enter a title' }]}
       >
-        <Input placeholder="Task title" />
+        <Input placeholder="e.g. Design review" />
       </Form.Item>
 
       <Form.Item
@@ -44,7 +44,7 @@ const CalenderForm: React.FC<CalenderFormProps> = ({ onFormChange, initialValues
         name="desc"
         rules={[{ required: true, message: 'Please enter a description' }]}
       >
-        <Input.TextArea rows={3} placeholder="Task description" />
+        <Input.TextArea rows={3} placeholder="Optional details..." />
       </Form.Item>
 
       <Form.Item

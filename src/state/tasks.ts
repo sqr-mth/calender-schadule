@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 export const Status = {
-  1: 'Waiting',
-  2: 'Problem',
+  1: 'Pending',
+  2: 'Blocked',
   3: 'Done',
 } as const;
 
@@ -32,7 +32,7 @@ export const useTasksStore = create<TasksStore>()(
         })),
     }),
     {
-      name: 'tasks-storage',
+      name: 'scheduler-tasks-v2',
       storage: createJSONStorage(() =>
         typeof window !== 'undefined' ? localStorage : ({} as Storage),
       ),

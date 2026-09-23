@@ -1,112 +1,92 @@
-/* ─────────────────────────────────────────────
-   Calendar – design tokens
-   ───────────────────────────────────────────── */
+/* ─── Design tokens ──────────────────────────── */
 :root {
-  --c-primary: #1890ff;
-  --c-primary-dark: #096dd9;
-  --c-success: #52c41a;
-  --c-warning: #faad14;
-  --c-error: #ff4d4f;
-  --c-accent: #722ed1;
-  --c-bg: linear-gradient(135deg, #f8fafd 0%, #e3ecff 100%);
-  --c-cell-bg: rgba(255, 255, 255, 0.97);
-  --c-cell-shadow: 0 4px 20px rgba(24, 144, 255, 0.08), 0 1px 6px rgba(114, 46, 209, 0.04);
-  --r-card: 14px;
-  --r-cell: 18px;
-  --transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --c-primary:    #1890ff;
+  --c-primary-dk: #0c6fcd;
+  --c-success:    #52c41a;
+  --c-warning:    #f59e0b;
+  --c-danger:     #ef4444;
+  --c-bg:         #f3f5f8;
+  --c-surface:    #ffffff;
+  --c-border:     #e2e8f0;
+  --c-text:       #1e293b;
+  --c-text-muted: #64748b;
+  --shadow-xs:    0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:    0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md:    0 4px 16px rgba(0,0,0,0.08);
+  --r:            10px;
+  --ease:         all 0.16s ease;
 }
 
-/* ─────────────────────────────────────────────
-   Animations
-   ───────────────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+/* ─── Animations ─────────────────────────────── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes pulse {
-  0%   { box-shadow: 0 0 0 0   rgba(24, 144, 255, 0.35); }
-  70%  { box-shadow: 0 0 0 8px rgba(24, 144, 255, 0); }
-  100% { box-shadow: 0 0 0 0   rgba(24, 144, 255, 0); }
-}
-@keyframes gradientShift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes todayPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(24,144,255,.3); }
+  70%  { box-shadow: 0 0 0 6px rgba(24,144,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(24,144,255,0); }
 }
 
-/* ─────────────────────────────────────────────
-   Wrapper
-   ───────────────────────────────────────────── */
+/* ─── Container ──────────────────────────────── */
 .calendar-container {
   min-height: 100vh;
   width: 100%;
   background: var(--c-bg);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
-/* ─────────────────────────────────────────────
-   Header bar
-   ───────────────────────────────────────────── */
+/* ─── Header ─────────────────────────────────── */
 .calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 32px 16px;
-  background: rgba(240, 245, 255, 0.88);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(200, 220, 255, 0.25);
-  position: relative;
-  z-index: 2;
-  animation: fadeIn 0.5s ease;
+  padding: 18px 28px 14px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  animation: fadeSlideIn 0.3s ease;
 }
 
 .calendar-header h4.ant-typography {
-  font-weight: 800;
-  font-size: 1.6rem;
-  background: linear-gradient(90deg, var(--c-primary), var(--c-success), var(--c-accent));
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--c-text);
   margin: 0;
-  animation: gradientShift 6s ease infinite;
+  letter-spacing: -0.3px;
 }
 
 .calendar-summary {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .stats-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 10px 20px;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.07);
-  min-width: 120px;
-  transition: var(--transition);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  padding: 8px 18px;
+  min-width: 110px;
 }
-.stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.12);
+.stats-card .ant-typography:first-child {
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .stats-card .ant-typography:last-child {
-  font-size: 1.6rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--c-primary);
+  line-height: 1.2;
 }
 
-/* ─────────────────────────────────────────────
-   Loading / Error states
-   ───────────────────────────────────────────── */
+/* ─── Loading / Error ────────────────────────── */
 .loading-container,
 .error-container {
   display: flex;
@@ -114,66 +94,59 @@
   align-items: center;
   justify-content: center;
   height: 400px;
-  gap: 16px;
-  animation: fadeIn 0.6s ease;
+  gap: 14px;
+  color: var(--c-text-muted);
 }
-.loading-text { color: #888; }
 
-/* ─────────────────────────────────────────────
-   Ant Design Calendar overrides
-   ───────────────────────────────────────────── */
+/* ─── Ant Calendar overrides ─────────────────── */
 .ant-picker-calendar {
-  background: rgba(255, 255, 255, 0.45);
-  border-radius: 20px;
-  padding: 16px;
-  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.09);
-  border: 1px solid rgba(200, 220, 255, 0.15);
-  margin: 12px 0;
-  overflow: visible;
+  background: var(--c-surface);
+  border-radius: var(--r);
+  padding: 12px;
+  margin: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--c-border);
 }
 
 .ant-picker-calendar-header {
-  padding: 12px 0 10px !important;
-  background: rgba(240, 245, 255, 0.7) !important;
-  border-radius: 12px !important;
-  margin-bottom: 12px !important;
-  justify-content: center !important;
+  padding: 10px 0 8px !important;
+  background: transparent !important;
+  border-radius: 8px !important;
+  margin-bottom: 10px !important;
   border: none !important;
 }
 
 .ant-picker-calendar-mode-switch { display: none !important; }
 
-.ant-picker-content {
-  table-layout: fixed;
-  width: 100%;
-}
+.ant-picker-content { table-layout: fixed; width: 100%; }
 
 .ant-picker-content th {
   padding: 6px 0 !important;
+  font-size: 0.75rem !important;
   font-weight: 600 !important;
-  color: #555 !important;
+  color: var(--c-text-muted) !important;
   text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
 }
 
-/* Every calendar cell */
 td {
-  height: 130px;
+  height: 120px;
   overflow: hidden;
   border: none !important;
 }
 
 .ant-picker-cell {
   background: transparent;
-  border-radius: var(--r-cell);
   border: none;
   vertical-align: top;
 }
 
 .ant-picker-cell-in-view {
-  background: rgba(255, 255, 255, 0.82);
-  border-radius: var(--r-cell);
+  background: var(--c-surface);
+  border-radius: 6px;
   margin: 2px;
-  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.05);
+  border: 1px solid var(--c-border) !important;
 }
 
 .ant-picker-cell,
@@ -184,79 +157,68 @@ td {
 .ant-picker-cell-inner {
   width: 100%;
   height: 100%;
-  min-height: 110px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
-  border-radius: var(--r-cell);
-  background: var(--c-cell-bg);
-  box-shadow: var(--c-cell-shadow);
+  border-radius: 6px;
+  background: transparent;
   padding: 0 !important;
-  transition: var(--transition);
+  transition: var(--ease);
   overflow: hidden;
 }
 
-.ant-picker-cell-inner:hover {
-  background: rgba(240, 247, 255, 0.98);
-  box-shadow: 0 8px 28px rgba(24, 144, 255, 0.13);
-  transform: translateY(-2px) scale(1.015);
-  z-index: 5;
+.ant-picker-cell-in-view .ant-picker-cell-inner:hover {
+  background: #f8faff;
 }
 
-/* Today highlight */
+/* Today */
 .ant-picker-cell-today .ant-picker-cell-inner {
   border: 2px solid var(--c-primary) !important;
-  background: rgba(24, 144, 255, 0.07) !important;
-  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
-  animation: pulse 2s infinite;
+  background: rgba(24,144,255,.04) !important;
 }
 
-/* Date number pill */
+/* Date number */
 .ant-picker-calendar-date-value {
   display: inline-block;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--c-primary);
-  background: #fff;
-  border-radius: 10px;
-  padding: 2px 10px;
-  margin: 8px auto 0;
-  border: 1px solid rgba(24, 144, 255, 0.15);
-  letter-spacing: 0.3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  padding: 4px 8px;
+  margin: 0;
   align-self: flex-start;
-  margin-left: 8px;
+}
+
+.ant-picker-cell-in-view .ant-picker-calendar-date-value {
+  color: var(--c-text);
 }
 
 .ant-picker-cell-today .ant-picker-calendar-date-value {
-  background: linear-gradient(90deg, var(--c-primary), var(--c-success), var(--c-accent));
-  color: #fff !important;
-  border-color: transparent;
+  color: var(--c-primary) !important;
+  font-weight: 700;
 }
 
-/* Task content area inside a cell */
+/* Content area */
 .ant-picker-calendar-date-content {
   width: 100% !important;
   flex: 1;
   overflow-y: auto;
-  padding: 4px 6px 6px;
+  padding: 2px 4px 4px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(24, 144, 255, 0.15) transparent;
+  scrollbar-color: var(--c-border) transparent;
 }
-.ant-picker-calendar-date-content::-webkit-scrollbar { width: 4px; }
+.ant-picker-calendar-date-content::-webkit-scrollbar { width: 3px; }
 .ant-picker-calendar-date-content::-webkit-scrollbar-thumb {
-  background: rgba(24, 144, 255, 0.2);
-  border-radius: 4px;
+  background: var(--c-border);
+  border-radius: 2px;
 }
 
-/* Selected cell */
+/* Selected */
 .ant-picker-cell-selected .ant-picker-cell-inner {
-  background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-dark) 100%) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.25) !important;
+  background: #e8f4ff !important;
+  border: 2px solid var(--c-primary) !important;
 }
 
-/* ─────────────────────────────────────────────
-   Calendar cell custom content
-   ───────────────────────────────────────────── */
+/* ─── Cell content ───────────────────────────── */
 .calendar-cell {
   width: 100%;
   height: 100%;
@@ -264,170 +226,153 @@ td {
   position: relative;
 }
 
-/* Status ring on the cell wrapper */
-.has-overdue   { box-shadow: inset 0 0 0 2px rgba(255, 77,  79,  0.35) !important; }
-.has-urgent    { box-shadow: inset 0 0 0 2px rgba(250, 173, 20,  0.35) !important; }
-.all-completed { box-shadow: inset 0 0 0 2px rgba(82,  196, 26,  0.35) !important; }
-.weekend-cell  { background-color: rgba(0, 0, 0, 0.012); }
+/* Status ring */
+.has-overdue   { outline: 2px solid rgba(239,68,68,.25); outline-offset: -1px; border-radius: 6px; }
+.has-urgent    { outline: 2px solid rgba(245,158,11,.25); outline-offset: -1px; border-radius: 6px; }
+.all-completed { outline: 2px solid rgba(82,196,26,.25); outline-offset: -1px; border-radius: 6px; }
+.weekend-cell  { background-color: rgba(0,0,0,.015); }
 
 /* Task container */
 .task-container {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  padding-top: 12px;
   position: relative;
-  padding-top: 14px;
 }
 
 .task-count {
   position: absolute;
-  top: -4px;
-  left: 4px;
+  top: -2px;
+  right: 4px;
   z-index: 4;
 }
 
-/* Task list (Ant List inside cell) */
+/* Task list */
 .task-list { width: 100%; margin: 0; }
 
 .task-list .ant-list-item,
 .task-item {
-  padding: 4px 8px !important;
-  margin-bottom: 4px !important;
-  border-radius: 8px !important;
-  background: rgba(255, 255, 255, 0.9) !important;
+  padding: 3px 6px !important;
+  margin-bottom: 2px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
   border: none !important;
   cursor: pointer !important;
-  transition: var(--transition) !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+  transition: background 0.12s ease !important;
+  box-shadow: none !important;
 }
 .task-item:hover {
-  background: #f0f7ff !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 3px 10px rgba(24, 144, 255, 0.1) !important;
+  background: rgba(24,144,255,.06) !important;
 }
 
-/* Status left border */
-.task-item.status-1 { border-left: 3px solid var(--c-warning)  !important; }
-.task-item.status-2 { border-left: 3px solid var(--c-error)    !important; }
-.task-item.status-3 { border-left: 3px solid var(--c-success)  !important; }
+.task-item.status-1 { border-left: 2px solid var(--c-warning) !important; }
+.task-item.status-2 { border-left: 2px solid var(--c-danger)  !important; }
+.task-item.status-3 { border-left: 2px solid var(--c-success) !important; }
 
 .task-title {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  color: #334155;
-  max-width: 100%;
+  color: var(--c-text);
 }
 
 .more-tasks {
-  font-size: 0.7rem;
-  color: #94a3b8;
-  text-align: center;
-  padding: 1px 0;
-  font-style: italic;
+  font-size: 0.68rem;
+  color: var(--c-text-muted);
+  text-align: right;
+  padding: 1px 6px 2px;
 }
 
-/* Empty cell add button */
+/* Empty cell */
 .empty-cell {
   width: 100%;
   height: 100%;
-  min-height: 80px;
+  min-height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: var(--transition);
+  transition: opacity 0.14s ease;
 }
-.calendar-cell:hover .empty-cell {
-  opacity: 1;
-}
+.calendar-cell:hover .empty-cell { opacity: 1; }
 
 .add-task-icon {
-  font-size: 18px;
+  font-size: 14px;
   color: var(--c-primary);
-  padding: 8px;
+  padding: 6px;
   border-radius: 50%;
-  background: rgba(24, 144, 255, 0.1);
-  transition: var(--transition);
+  background: rgba(24,144,255,.08);
+  transition: var(--ease);
 }
 .calendar-cell:hover .add-task-icon {
-  background: rgba(24, 144, 255, 0.2);
-  transform: rotate(90deg) scale(1.1);
+  background: rgba(24,144,255,.14);
 }
 
 .task-badge { width: 100%; }
 .ant-badge   { width: 100%; }
-.ant-badge-status-dot { width: 7px !important; height: 7px !important; }
+.ant-badge-status-dot { width: 6px !important; height: 6px !important; }
 
-/* ─────────────────────────────────────────────
-   Modal
-   ───────────────────────────────────────────── */
-.ant-modal-wrap { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* ─── Modal ──────────────────────────────────── */
+.ant-modal-wrap { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 
 .ant-modal-content {
-  border-radius: 20px !important;
-  box-shadow: 0 12px 48px rgba(24, 144, 255, 0.12) !important;
-  background: rgba(255, 255, 255, 0.88) !important;
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(200, 220, 255, 0.2) !important;
-  animation: fadeIn 0.3s ease;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06) !important;
+  background: var(--c-surface) !important;
+  border: 1px solid var(--c-border) !important;
+  animation: fadeSlideIn 0.22s ease;
 }
 
-.ant-modal-header { border-bottom: 1px solid rgba(240, 240, 240, 0.8) !important; background: transparent !important; }
+.ant-modal-header {
+  border-bottom: 1px solid var(--c-border) !important;
+  background: transparent !important;
+  padding: 16px 20px !important;
+}
 
 .ant-modal-title {
-  font-weight: 800 !important;
-  font-size: 1.25rem !important;
-  background: linear-gradient(90deg, var(--c-primary), var(--c-success), var(--c-accent));
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent !important;
-  animation: gradientShift 5s ease infinite;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  color: var(--c-text) !important;
 }
 
-/* ─────────────────────────────────────────────
-   Form inside modal
-   ───────────────────────────────────────────── */
-.ant-form-item-label > label { font-weight: 600; color: #334155; }
+/* ─── Form ───────────────────────────────────── */
+.ant-form-item-label > label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--c-text);
+}
 
 .ant-input,
 .ant-input-affix-wrapper {
-  border-radius: 8px !important;
-  border-color: #dbe4f0 !important;
-  background: rgba(250, 250, 252, 0.8) !important;
-  transition: var(--transition) !important;
+  border-radius: 7px !important;
+  border-color: var(--c-border) !important;
+  background: #fafafa !important;
+  transition: var(--ease) !important;
 }
 .ant-input:focus,
 .ant-input:hover {
   border-color: var(--c-primary) !important;
-  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.12) !important;
-  background: #fff !important;
+  box-shadow: 0 0 0 2px rgba(24,144,255,.1) !important;
+  background: var(--c-surface) !important;
 }
-.ant-input-textarea textarea {
-  border-radius: 8px !important;
-  resize: vertical;
-}
+.ant-input-textarea textarea { border-radius: 7px !important; resize: vertical; }
 
-.ant-radio-wrapper { font-weight: 500; }
+.ant-radio-wrapper { font-weight: 500; font-size: 0.875rem; }
 
-/* ─────────────────────────────────────────────
-   Nav header (shared global)
-   ───────────────────────────────────────────── */
+/* ─── Nav ────────────────────────────────────── */
 .nav-header {
   display: flex;
   align-items: center;
-  gap: 0;
-  height: 56px;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(200, 220, 255, 0.3);
-  box-shadow: 0 2px 12px rgba(24, 144, 255, 0.06);
+  height: 54px;
+  padding: 0 20px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  box-shadow: var(--shadow-xs);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -436,33 +381,27 @@ td {
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: #1e293b;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--c-text);
   white-space: nowrap;
-  margin-right: 16px;
-  letter-spacing: -0.3px;
+  margin-right: 12px;
+  letter-spacing: -0.2px;
 }
 
-/* ─────────────────────────────────────────────
-   Responsive
-   ───────────────────────────────────────────── */
+/* ─── Responsive ─────────────────────────────── */
 @media (max-width: 900px) {
-  .calendar-header { padding: 14px 16px; }
-  .calendar-header h4.ant-typography { font-size: 1.2rem; }
-
+  .calendar-header { padding: 12px 16px; }
   td { height: 80px; }
   .ant-picker-cell-inner { min-height: 70px; }
-  .ant-picker-calendar-date-value { font-size: 0.85rem; padding: 1px 7px; }
+  .ant-picker-calendar-date-value { font-size: 0.78rem; }
 }
 
 @media (max-width: 600px) {
   .calendar-header { flex-direction: column; gap: 10px; align-items: flex-start; }
   .calendar-summary { width: 100%; justify-content: space-between; }
-
   td { height: 60px; }
-  .ant-picker-cell-inner { min-height: 52px; font-size: 0.85rem; }
-  .task-title { font-size: 0.65rem; }
-  .ant-picker-calendar-date-value { font-size: 0.78rem; padding: 1px 5px; }
+  .ant-picker-cell-inner { min-height: 52px; }
+  .task-title { font-size: 0.62rem; }
 }

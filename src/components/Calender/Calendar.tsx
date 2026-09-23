@@ -166,7 +166,7 @@ const CalendarComponent: React.FC = () => {
     <div className="calendar-container">
       <div className="calendar-header">
         <Title level={4}>
-          <CalendarOutlined /> Interactive Calendar
+          <CalendarOutlined /> Calendar
         </Title>
         <div className="calendar-summary">
           <div className="stats-card">
@@ -186,12 +186,12 @@ const CalendarComponent: React.FC = () => {
       {isLoading ? (
         <div className="loading-container">
           <Spin size="large" />
-          <Text className="loading-text">Loading your calendar…</Text>
+          <Text className="loading-text">Loading tasks...</Text>
         </div>
       ) : error ? (
         <div className="error-container">
-          <Text type="danger">Failed to load calendar data.</Text>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
+          <Text type="danger">Failed to load tasks.</Text>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
         </div>
       ) : (
         <Calendar
@@ -203,14 +203,14 @@ const CalendarComponent: React.FC = () => {
       )}
 
       <Modal
-        title={selectedTask ? "Edit Task" : "Add Task"}
+        title={selectedTask ? "Edit task" : "Add task"}
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         centered
         className="task-modal"
         destroyOnClose
-        okText={selectedTask ? "Save Changes" : "Add Task"}
+        okText={selectedTask ? "Save" : "Add task"}
       >
         {selectedDate ? (
           <CalenderForm

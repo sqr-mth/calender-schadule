@@ -20,9 +20,9 @@ const fetchTasks = async (): Promise<Task[]> => {
 };
 
 const STATUS_META: Record<number, { label: string; color: string; icon: React.ReactNode }> = {
-  1: { label: 'Waiting', color: '#faad14', icon: <ClockCircleOutlined /> },
-  2: { label: 'Problem', color: '#ff4d4f', icon: <ExclamationCircleOutlined /> },
-  3: { label: 'Done',    color: '#52c41a', icon: <CheckCircleOutlined /> },
+  1: { label: 'Pending',  color: '#f59e0b', icon: <ClockCircleOutlined /> },
+  2: { label: 'Blocked',  color: '#ef4444', icon: <ExclamationCircleOutlined /> },
+  3: { label: 'Done',     color: '#52c41a', icon: <CheckCircleOutlined /> },
 };
 
 const Tasks: React.FC = () => {
@@ -69,7 +69,7 @@ const Tasks: React.FC = () => {
     <div className="tasks-root">
       <Input
         prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
-        placeholder="Search by title, description, or date…"
+        placeholder="Search tasks..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         allowClear
@@ -81,8 +81,8 @@ const Tasks: React.FC = () => {
         <Empty
           description={
             searchTerm
-              ? 'No tasks match your search'
-              : 'No tasks yet — add one from the Calendar!'
+              ? 'No tasks match your search.'
+              : 'No tasks yet. Add one from the Calendar.'
           }
           className="tasks-empty"
         />
