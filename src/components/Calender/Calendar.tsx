@@ -1,13 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Calendar, Modal, Badge, List, Spin, Button, Typography, Empty } from "antd";
+import { Calendar, Spin, Button, Typography, Tooltip } from "antd";
 import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useTasksStore, Task, StatusKey } from "../../state/tasks";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import "./style.css";
-import CalenderForm from "./FormCalender";
+import type { CalendarProps } from "antd";
+import type { Dayjs } from "dayjs";
+import TaskDetailModal from "./TaskDetailModal";
+import DayTasksModal from "./DayTasksModal";
+import TaskFormModal from "./TaskFormModal";
+import { STATUS_STYLE, toStatus, todayISO } from "./taskMeta";
 
 const { Title, Text } = Typography;
 
@@ -20,9 +25,17 @@ const CalendarComponent: React.FC = () => {
   const { tasks, setTasks } = useTasksStore();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Task | undefined>(undefined);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [currentMonthTasks, setCurrentMonthTasks] = useState(0);
+  const [viewTaskId, setViewTaskId] = useState<string | null>(null);
+  const viewTask = tasks.find((t) => t.id === viewTaskId);
+  const [dayViewDate, setDayViewDate] = useState<string | null>(null);
+  const dayViewTasks = dayViewDate ? tasks.filter((t) => t.date === dayViewDate) : [];
+
+  const openDay = (date: string) => {
+    if (tasks.some((t) => t.date === date)) setDayViewDate(date);
+    else openModal(date);
+  };
 
   const { data: posts, error, isLoading } = useQuery({
     queryKey: ["postsData"],
@@ -39,22 +52,6 @@ const CalendarComponent: React.FC = () => {
     });
   }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-init form data when modal opens
-  useEffect(() => {
-    if (!isModalVisible) return;
-    if (selectedTask) {
-      setFormData({ ...selectedTask, date: selectedDate ?? selectedTask.date });
-    } else {
-      setFormData({
-        id: String(Date.now()),
-        title: "",
-        desc: "",
-        date: selectedDate ?? new Date().toISOString().split("T")[0],
-        status: 1 as StatusKey,
-      });
-    }
-  }, [isModalVisible]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Count tasks in the current calendar month
   useEffect(() => {
     const today = new Date();
@@ -68,14 +65,11 @@ const CalendarComponent: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const handleOk = () => {
-    if (!formData) return;
+  const handleSave = (data: Task) => {
     if (selectedTask) {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === selectedTask.id ? { ...formData, id: t.id } : t)),
-      );
+      setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? { ...data, id: t.id } : t)));
     } else {
-      setTasks((prev) => [...prev, { ...formData, id: String(Date.now()) }]);
+      setTasks((prev) => [...prev, { ...data, id: String(Date.now()) }]);
     }
     setIsModalVisible(false);
   };
@@ -85,78 +79,108 @@ const CalendarComponent: React.FC = () => {
     setSelectedTask(undefined);
   };
 
-  const dateCellRender = (value: { format: (f: string) => string; day: () => number }) => {
+  const handleEditFromDetail = (task: Task) => {
+    setViewTaskId(null);
+    openModal(task.date, task);
+  };
+
+  const handleDelete = (task: Task) => {
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    setViewTaskId(null);
+  };
+
+  const handleStatusChange = (task: Task, status: StatusKey) => {
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)));
+  };
+
+  const fullCellRender: CalendarProps<Dayjs>["fullCellRender"] = (value, info) => {
+    if (info.type !== "date") return info.originNode;
+
     const date = value.format("YYYY-MM-DD");
     const tasksForDate = tasks.filter((t) => t.date === date);
-    const today = new Date().toISOString().split("T")[0];
-    const isToday = date === today;
+    const isToday = value.isSame(info.today, "day");
     const isWeekend = value.day() === 0 || value.day() === 6;
-
-    const hasOverdue = tasksForDate.some((t) => Number(t.status) === 2);
-    const hasUrgent = tasksForDate.some((t) => Number(t.status) === 1);
-    const allCompleted =
-      tasksForDate.length > 0 && tasksForDate.every((t) => Number(t.status) === 3);
-
-    const badgeColor = hasOverdue ? "#ff4d4f" : allCompleted ? "#52c41a" : hasUrgent ? "#faad14" : "#1890ff";
+    // Two events + a "more" row fit the cell; with exactly three, show all three.
+    const visible = tasksForDate.length <= 3 ? tasksForDate : tasksForDate.slice(0, 2);
+    const hidden = tasksForDate.length - visible.length;
 
     return (
       <div
         className={[
-          "calendar-cell",
-          isToday && "today-cell",
-          hasOverdue && "has-overdue",
-          hasUrgent && "has-urgent",
-          allCompleted && "all-completed",
-          isWeekend && "weekend-cell",
+          "day-cell",
+          isToday && "is-today",
+          isWeekend && "is-weekend",
+          tasksForDate.length > 0 && "has-tasks",
         ]
           .filter(Boolean)
           .join(" ")}
         onClick={(e) => {
           e.stopPropagation();
-          openModal(date);
+          openDay(date);
         }}
       >
-        {tasksForDate.length > 0 ? (
-          <div className="task-container">
-            <div className="task-count">
-              <Badge
-                count={tasksForDate.length}
-                style={{ backgroundColor: badgeColor, boxShadow: "0 0 0 2px rgba(255,255,255,0.8)" }}
-              />
-            </div>
-            <List
-              size="small"
-              className="task-list"
-              dataSource={tasksForDate.slice(0, 3)}
-              renderItem={(item) => (
-                <List.Item
-                  id={item.id}
+        <div className="day-head">
+          <span className="day-num">{value.date()}</span>
+          <Tooltip title="Add task" mouseEnterDelay={0.4}>
+            <button
+              type="button"
+              className="day-add"
+              aria-label={`Add task on ${value.format("MMM D")}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                openModal(date);
+              }}
+            >
+              <PlusOutlined />
+            </button>
+          </Tooltip>
+        </div>
+
+        {tasksForDate.length > 0 && (
+          <>
+            <div className="day-events">
+              {visible.map((item) => {
+                const status = toStatus(item.status);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`day-event${status === 3 ? " is-done" : ""}`}
+                    style={{ "--ev-color": STATUS_STYLE[status].color } as React.CSSProperties}
+                    title={item.title}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDayViewDate(date);
+                    }}
+                  >
+                    {item.title || "Untitled task"}
+                  </button>
+                );
+              })}
+              {hidden > 0 && (
+                <button
+                  type="button"
+                  className="day-more"
                   onClick={(e) => {
                     e.stopPropagation();
-                    openModal(item.date, item);
+                    setDayViewDate(date);
                   }}
-                  className={`task-item status-${Number(item.status)}`}
                 >
-                  <Badge
-                    status={
-                      Number(item.status) === 3 ? "success"
-                        : Number(item.status) === 2 ? "error"
-                          : "warning"
-                    }
-                    text={<span className="task-title">{item.title}</span>}
-                    className="task-badge"
-                  />
-                </List.Item>
+                  +{hidden} more
+                </button>
               )}
-            />
-            {tasksForDate.length > 3 && (
-              <div className="more-tasks">+{tasksForDate.length - 3} more</div>
-            )}
-          </div>
-        ) : (
-          <div className="empty-cell">
-            <PlusOutlined className="add-task-icon" />
-          </div>
+            </div>
+
+            <div className="day-dots" aria-hidden>
+              {tasksForDate.slice(0, 4).map((item) => (
+                <span
+                  key={item.id}
+                  className="day-dot"
+                  style={{ background: STATUS_STYLE[toStatus(item.status)].color }}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
     );
@@ -164,20 +188,16 @@ const CalendarComponent: React.FC = () => {
 
   return (
     <div className="calendar-container">
-      <div className="calendar-header">
+      <div className="page-header">
         <Title level={4}>
           <CalendarOutlined /> Calendar
         </Title>
-        <div className="calendar-summary">
+        <div className="page-header-actions">
           <div className="stats-card">
             <Text type="secondary">Tasks This Month</Text>
             <Text strong>{currentMonthTasks}</Text>
           </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => openModal(new Date().toISOString().split("T")[0])}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal(todayISO())}>
             Add Task
           </Button>
         </div>
@@ -197,40 +217,41 @@ const CalendarComponent: React.FC = () => {
         <Calendar
           className="custom-calendar"
           fullscreen={false}
-          onSelect={(date) => openModal(date.format("YYYY-MM-DD"))}
-          cellRender={dateCellRender}
+          onSelect={(date, { source }) => {
+            if (source === "date") openDay(date.format("YYYY-MM-DD"));
+          }}
+          fullCellRender={fullCellRender}
         />
       )}
 
-      <Modal
-        title={selectedTask ? "Edit task" : "Add task"}
+      <TaskFormModal
         open={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        centered
-        className="task-modal"
-        destroyOnClose
-        okText={selectedTask ? "Save" : "Add task"}
-      >
-        {selectedDate ? (
-          <CalenderForm
-            onFormChange={(_changed, all) =>
-              setFormData({ ...formData!, ...all, date: selectedDate })
-            }
-            initialValues={
-              selectedTask ?? {
-                id: String(Date.now()),
-                title: "",
-                desc: "",
-                date: selectedDate,
-                status: 1 as StatusKey,
-              }
-            }
-          />
-        ) : (
-          <Empty description="No date selected" />
-        )}
-      </Modal>
+        date={selectedDate}
+        task={selectedTask}
+        onClose={handleCancel}
+        onSave={handleSave}
+      />
+
+      <DayTasksModal
+        date={dayViewDate}
+        hidden={!!viewTask}
+        tasks={dayViewTasks}
+        onClose={() => setDayViewDate(null)}
+        onOpenTask={(task) => setViewTaskId(task.id)}
+        onAddTask={(date) => openModal(date)}
+      />
+
+      <TaskDetailModal
+        task={viewTask}
+        onClose={() => {
+          setViewTaskId(null);
+          setDayViewDate(null);
+        }}
+        onBack={() => setViewTaskId(null)}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 };

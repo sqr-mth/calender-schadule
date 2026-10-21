@@ -1,35 +1,48 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useTasksStore, Task, Status } from '@/state/tasks';
-import { Input, Badge, Empty, Tooltip } from 'antd';
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Input, Typography } from "antd";
 import {
+  InboxOutlined,
+  PlusOutlined,
+  RightOutlined,
   SearchOutlined,
-  DeleteOutlined,
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  ExclamationCircleOutlined,
-} from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+  UnorderedListOutlined,
+} from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { useTasksStore, Task, Status, StatusKey } from "@/state/tasks";
+import TaskDetailModal from "@/components/Calender/TaskDetailModal";
+import TaskFormModal from "@/components/Calender/TaskFormModal";
+import {
+  STATUS_KEYS,
+  STATUS_STYLE,
+  mediumDate,
+  relativeDay,
+  toStatus,
+  todayISO,
+} from "@/components/Calender/taskMeta";
+
+const { Title, Text } = Typography;
 
 const fetchTasks = async (): Promise<Task[]> => {
-  const { data } = await axios.get<Task[]>('/api');
+  const { data } = await axios.get<Task[]>("/api");
   return data;
 };
 
-const STATUS_META: Record<number, { label: string; color: string; icon: React.ReactNode }> = {
-  1: { label: 'Pending',  color: '#f59e0b', icon: <ClockCircleOutlined /> },
-  2: { label: 'Blocked',  color: '#ef4444', icon: <ExclamationCircleOutlined /> },
-  3: { label: 'Done',     color: '#52c41a', icon: <CheckCircleOutlined /> },
-};
+type Filter = "all" | StatusKey;
+
+const NEAR_DAYS = new Set(["Today", "Tomorrow", "Yesterday"]);
 
 const Tasks: React.FC = () => {
   const { tasks, setTasks } = useTasksStore();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [viewTaskId, setViewTaskId] = useState<string | null>(null);
+  const [form, setForm] = useState<{ open: boolean; task?: Task }>({ open: false });
+  const viewTask = tasks.find((t) => t.id === viewTaskId);
 
-  const { data: posts } = useQuery({ queryKey: ['postsData'], queryFn: fetchTasks });
+  const { data: posts } = useQuery({ queryKey: ["postsData"], queryFn: fetchTasks });
 
   // Seed store with API tasks (same as Calendar)
   useEffect(() => {
@@ -41,101 +54,181 @@ const Tasks: React.FC = () => {
     });
   }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDelete = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+  const counts = useMemo(() => {
+    const c: Record<Filter, number> = { all: tasks.length, 1: 0, 2: 0, 3: 0 };
+    tasks.forEach((t) => c[toStatus(t.status)]++);
+    return c;
+  }, [tasks]);
+
+  const groups = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = tasks.filter(
+      (t) =>
+        (filter === "all" || toStatus(t.status) === filter) &&
+        (!q || t.title?.toLowerCase().includes(q) || t.desc?.toLowerCase().includes(q)),
+    );
+    const byDate = new Map<string, Task[]>();
+    [...filtered]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .forEach((t) => byDate.set(t.date, [...(byDate.get(t.date) ?? []), t]));
+    return [...byDate.entries()];
+  }, [tasks, search, filter]);
+
+  const handleSave = (data: Task) => {
+    if (form.task) {
+      setTasks((prev) => prev.map((t) => (t.id === form.task!.id ? { ...data, id: t.id } : t)));
+    } else {
+      setTasks((prev) => [...prev, { ...data, id: String(Date.now()) }]);
+    }
+    setForm({ open: false });
   };
 
-  // Filter + group by date, sorted ascending
-  const grouped = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const filtered = q
-      ? tasks.filter(
-          (t) =>
-            t.title?.toLowerCase().includes(q) ||
-            t.desc?.toLowerCase().includes(q) ||
-            t.date?.includes(q),
-        )
-      : tasks;
-
-    const map: Record<string, Task[]> = {};
-    for (const task of filtered) {
-      if (!map[task.date]) map[task.date] = [];
-      map[task.date].push(task);
-    }
-    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
-  }, [tasks, searchTerm]);
+  const filterOptions: { key: Filter; label: string; color?: string }[] = [
+    { key: "all", label: "All" },
+    ...STATUS_KEYS.map((key) => ({ key, label: Status[key], color: STATUS_STYLE[key].color })),
+  ];
 
   return (
-    <div className="tasks-root">
-      <Input
-        prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
-        placeholder="Search tasks..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        allowClear
-        className="tasks-search"
-        size="large"
+    <div className="tasks-page">
+      <div className="page-header">
+        <Title level={4}>
+          <UnorderedListOutlined /> Tasks
+        </Title>
+        <div className="page-header-actions">
+          <div className="stats-card">
+            <Text type="secondary">Open Tasks</Text>
+            <Text strong>{counts[1] + counts[2]}</Text>
+          </div>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setForm({ open: true })}>
+            Add Task
+          </Button>
+        </div>
+      </div>
+
+      <div className="tasks-body">
+        <div className="tasks-toolbar">
+          <Input
+            prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
+            placeholder="Search tasks..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            className="tasks-search"
+          />
+          <div className="tasks-filter" role="tablist" aria-label="Filter by status">
+            {filterOptions.map(({ key, label, color }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={filter === key}
+                className={`tasks-filter-btn${filter === key ? " is-active" : ""}`}
+                onClick={() => setFilter(key)}
+              >
+                {color && <span className="tasks-filter-dot" style={{ background: color }} />}
+                {label}
+                <span className="tasks-filter-count">{counts[key]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {groups.length === 0 ? (
+          <div className="tasks-empty">
+            <InboxOutlined style={{ fontSize: 32, color: "#94a3b8" }} />
+            {tasks.length === 0 ? (
+              <>
+                <p className="tasks-empty-title">No tasks yet</p>
+                <p className="tasks-empty-text">Create your first task and it will show up here.</p>
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setForm({ open: true })}>
+                  Add Task
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="tasks-empty-title">No matching tasks</p>
+                <p className="tasks-empty-text">Try a different search or status filter.</p>
+                <Button
+                  onClick={() => {
+                    setSearch("");
+                    setFilter("all");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </>
+            )}
+          </div>
+        ) : (
+          groups.map(([date, items]) => {
+            const rel = relativeDay(date);
+            const near = NEAR_DAYS.has(rel);
+            return (
+              <section key={date} className={`tasks-group${date === todayISO() ? " is-today" : ""}`}>
+                <div className="tasks-group-head">
+                  <span className="tasks-group-title">{near ? rel : mediumDate(date)}</span>
+                  <span className="tasks-group-sub">{near ? mediumDate(date) : rel}</span>
+                  <span className="tasks-group-count">
+                    {items.length} {items.length === 1 ? "task" : "tasks"}
+                  </span>
+                </div>
+
+                <div className="tasks-list">
+                  {items.map((task) => {
+                    const status = toStatus(task.status);
+                    const { color, icon } = STATUS_STYLE[status];
+                    return (
+                      <button
+                        key={task.id}
+                        type="button"
+                        className={`task-row${status === 3 ? " is-done" : ""}`}
+                        onClick={() => setViewTaskId(task.id)}
+                      >
+                        <span className="task-row-icon" style={{ color, background: `${color}17` }}>
+                          {icon}
+                        </span>
+                        <div className="task-row-main">
+                          <div className="task-row-title">{task.title || "Untitled task"}</div>
+                          <div className={`task-row-desc${task.desc ? "" : " is-empty"}`}>
+                            {task.desc || "No description"}
+                          </div>
+                        </div>
+                        <span className="td-status-pill" style={{ color, background: `${color}1a` }}>
+                          {Status[status]}
+                        </span>
+                        <RightOutlined className="task-row-arrow" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })
+        )}
+      </div>
+
+      <TaskDetailModal
+        task={viewTask}
+        onClose={() => setViewTaskId(null)}
+        onEdit={(task) => {
+          setViewTaskId(null);
+          setForm({ open: true, task });
+        }}
+        onDelete={(task) => {
+          setTasks((prev) => prev.filter((t) => t.id !== task.id));
+          setViewTaskId(null);
+        }}
+        onStatusChange={(task, status) =>
+          setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)))
+        }
       />
 
-      {grouped.length === 0 ? (
-        <Empty
-          description={
-            searchTerm
-              ? 'No tasks match your search.'
-              : 'No tasks yet. Add one from the Calendar.'
-          }
-          className="tasks-empty"
-        />
-      ) : (
-        <div className="tasks-groups">
-          {grouped.map(([date, items]) => (
-            <div key={date} className="task-group">
-              <div className="task-group-header">
-                <CalendarOutlined style={{ color: '#1890ff' }} />
-                <span>{date}</span>
-                <span className="task-group-count">{items.length}</span>
-              </div>
-
-              <div className="task-cards">
-                {items.map((task) => {
-                  const statusNum = Number(task.status) || 1;
-                  const meta = STATUS_META[statusNum] ?? STATUS_META[1];
-
-                  return (
-                    <div key={task.id} className={`task-card status-border-${statusNum}`}>
-                      <div className="task-card-body">
-                        <div className="task-card-title">{task.title || '—'}</div>
-                        {task.desc && (
-                          <div className="task-card-desc">{task.desc}</div>
-                        )}
-                      </div>
-                      <div className="task-card-right">
-                        <Badge
-                          color={meta.color}
-                          text={
-                            <span style={{ fontSize: '0.75rem', color: meta.color, fontWeight: 600 }}>
-                              {meta.label}
-                            </span>
-                          }
-                        />
-                        <Tooltip title="Delete task">
-                          <button
-                            className="task-delete-btn"
-                            onClick={() => handleDelete(task.id)}
-                            aria-label="Delete task"
-                          >
-                            <DeleteOutlined />
-                          </button>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <TaskFormModal
+        open={form.open}
+        task={form.task}
+        onClose={() => setForm((f) => ({ ...f, open: false }))}
+        onSave={handleSave}
+      />
     </div>
   );
 };
