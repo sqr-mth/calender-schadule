@@ -8,8 +8,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Scheduler',
-  description: 'Track tasks on a calendar. Simple, fast, offline-friendly.',
+  title: 'Forma — Personal productivity',
+  description: 'Your workspace for plans, focus, and progress.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Providers>
           <Nav />
-          <main>{children}</main>
+          <main className="app-main">{children}</main>
         </Providers>
       </body>
     </html>

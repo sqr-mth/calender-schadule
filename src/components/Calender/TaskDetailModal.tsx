@@ -103,7 +103,7 @@ const TaskDetailModal: React.FC<Props> = ({ task, onClose, onBack, onEdit, onDel
             <h3 className="td-desc-heading">
               <AlignLeftOutlined /> Description
             </h3>
-            {task.desc ? (
+            {typeof task.desc === 'string' && task.desc.trim() ? (
               <p className="td-desc-box">{task.desc}</p>
             ) : (
               <button type="button" className="td-desc-box td-desc-add" onClick={() => onEdit(task)}>

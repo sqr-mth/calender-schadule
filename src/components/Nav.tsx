@@ -1,52 +1,23 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { Menu, type MenuProps } from 'antd';
+'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { CalendarOutlined, UnorderedListOutlined } from '@ant-design/icons';
-
-const NAV_ITEMS: MenuProps['items'] = [
-  {
-    key: 'calendar',
-    icon: <CalendarOutlined />,
-    label: <Link href="/calender">Calendar</Link>,
-  },
-  {
-    key: 'tasks',
-    icon: <UnorderedListOutlined />,
-    label: <Link href="/tasks">Tasks</Link>,
-  },
-];
-
-const ROUTE_MAP: Record<string, string> = {
-  '/': 'calendar',
-  '/calender': 'calendar',
-  '/tasks': 'tasks',
-};
-
-const Nav: React.FC = () => {
-  const pathname = usePathname();
-  const [current, setCurrent] = useState('calendar');
-
-  useEffect(() => {
-    setCurrent(ROUTE_MAP[pathname] ?? pathname.replace('/', ''));
-  }, [pathname]);
-
-  return (
-    <header className="nav-header">
-      <div className="nav-logo">
-        <CalendarOutlined style={{ fontSize: 20, color: '#1890ff' }} />
-        <span>Scheduler</span>
-      </div>
-      <Menu
-        mode="horizontal"
-        selectedKeys={[current]}
-        items={NAV_ITEMS}
-        style={{ flex: 1, minWidth: 0, borderBottom: 'none', background: 'transparent' }}
-      />
-    </header>
-  );
-};
-
-export default Nav;
+import { usePathname, useRouter } from 'next/navigation';
+import { AppstoreOutlined, CalendarOutlined, CheckSquareOutlined, ProjectOutlined, TrophyOutlined, AimOutlined, FireOutlined, ClockCircleOutlined, BarChartOutlined, FileTextOutlined, HistoryOutlined, BellOutlined, SettingOutlined, UserOutlined, MenuOutlined, PlusOutlined, SearchOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Drawer, Input, Modal, Select, Tooltip } from 'antd';
+import { useTasksStore } from '@/state/tasks';
+import { todayISO } from './Calender/taskMeta';
+const groups = [
+ ['Workspace', [['Overview','/',AppstoreOutlined],['My Tasks','/tasks',CheckSquareOutlined],['Calendar','/calender',CalendarOutlined],['Projects','/projects',ProjectOutlined],['Workspaces','/workspaces',AppstoreOutlined],['Goals','/goals',TrophyOutlined],['Smart Schedule','/smart-schedule',CalendarOutlined]]],
+ ['Productivity', [['Focus Mode','/focus',AimOutlined],['Habits','/habits',FireOutlined],['Time Tracking','/time',ClockCircleOutlined],['Analytics','/analytics',BarChartOutlined],['Assistant','/assistant',AimOutlined],['Priority Matrix','/matrix',AppstoreOutlined]]],
+ ['Personal', [['Notes','/notes',FileTextOutlined],['Activity History','/activity',HistoryOutlined],['Notifications','/notifications',BellOutlined]]],
+ ['Preferences', [['Settings','/settings',SettingOutlined],['Profile','/profile',UserOutlined]]],
+] as const;
+export default function Nav() {
+ const path = usePathname(); const router = useRouter(); const [collapsed,setCollapsed]=useState(false); const [mobile,setMobile]=useState(false); const [quick,setQuick]=useState(false); const [palette,setPalette]=useState(false); const [query,setQuery]=useState(''); const [title,setTitle]=useState('');
+ const { tasks,projects,notes,addTask,workspaces,activeWorkspaceId,switchWorkspace } = useTasksStore();
+ useEffect(() => { const listener=(e:KeyboardEvent) => { if ((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k') { e.preventDefault(); setPalette(v=>!v); } }; window.addEventListener('keydown',listener); return () => window.removeEventListener('keydown',listener); },[]);
+ const navItems = groups.flatMap(([,items]) => items.map(([name,url]) => ({ name, url })));
+ const q=query.toLowerCase(); const results=[...navItems,...tasks.filter(t=>t.title.toLowerCase().includes(q)).map(t=>({name:t.title,url:'/tasks'})),...projects.filter(p=>p.title.toLowerCase().includes(q)).map(p=>({name:p.title,url:'/projects'})),...notes.filter(n=>n.title.toLowerCase().includes(q)).map(n=>({name:n.title,url:'/notes'}))].filter(x=>x.name.toLowerCase().includes(q)).slice(0,10);
+ const sidebar=<div className="sidebar-inner"><div className="brand"><span className="brand-mark">◈</span>{!collapsed&&<strong>Forma</strong>}</div>{!collapsed&&<Select aria-label="Active workspace" className="workspace-select" value={activeWorkspaceId} options={workspaces.map(w=>({label:w.name,value:w.id}))} onChange={switchWorkspace}/>}<button className="quick-add" onClick={()=>{setMobile(false);setQuick(true)}}><PlusOutlined />{!collapsed&&' Quick add'}</button><nav>{groups.map(([label,items])=><div className="nav-group" key={label}>{!collapsed&&<div className="nav-caption">{label}</div>}{items.map(([name,url,Icon])=><Tooltip title={collapsed?name:''} placement="right" key={url}><Link href={url} onClick={()=>setMobile(false)} className={`nav-link ${path===url?'active':''}`}><Icon />{!collapsed&&<span>{name}</span>}</Link></Tooltip>)}</div>)}</nav><div className="sidebar-bottom"><Link href="/profile" className="profile-link"><span className="avatar">U</span>{!collapsed&&<span><strong>{workspaces.find(w=>w.id===activeWorkspaceId)?.name??'Workspace'}</strong><small>Local workspace</small></span>}</Link><button className="collapse-button" onClick={()=>setCollapsed(!collapsed)} aria-label="Toggle sidebar">{collapsed?<RightOutlined/>:<LeftOutlined/>}</button></div></div>;
+ return <><aside className={`app-sidebar ${collapsed?'collapsed':''}`}>{sidebar}</aside><header className="topbar"><button className="mobile-menu" onClick={()=>setMobile(true)} aria-label="Open navigation"><MenuOutlined/></button><div className="topbar-title">{navItems.find(item=>item.url===path)?.name??'Overview'}</div><button className="top-search" onClick={()=>setPalette(true)}><SearchOutlined/><span>Search anything</span><kbd>⌘ K</kbd></button><Link className="top-icon" href="/notifications" aria-label="Notifications"><BellOutlined/></Link><span className="top-avatar">U</span></header><Drawer open={mobile} onClose={()=>setMobile(false)} placement="left" width={250} styles={{body:{padding:0}}}>{sidebar}</Drawer><Modal title="Quick add task" open={quick} onCancel={()=>setQuick(false)} onOk={()=>{if(title.trim()){addTask({title:title.trim(),desc:'',date:todayISO(),status:1,priority:'medium'});setTitle('');setQuick(false)}}} okText="Add task"><Input autoFocus placeholder="What needs to get done?" value={title} onChange={e=>setTitle(e.target.value)} onPressEnter={()=>{if(title.trim()){addTask({title:title.trim(),desc:'',date:todayISO(),status:1});setTitle('');setQuick(false)}}}/></Modal><Modal title="Search and commands" open={palette} onCancel={()=>setPalette(false)} footer={null}><Input autoFocus prefix={<SearchOutlined/>} placeholder="Search tasks, projects, notes or pages" value={query} onChange={e=>setQuery(e.target.value)}/><div className="palette-results">{results.map((r,i)=><button key={`${r.url}-${i}`} onClick={()=>{router.push(r.url);setPalette(false);setQuery('')}}>{r.name}<span>↗</span></button>)}<button onClick={()=>{setPalette(false);setQuick(true)}}>+ Create task</button></div></Modal></>;
+}

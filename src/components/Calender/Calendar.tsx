@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Calendar, Spin, Button, Typography, Tooltip } from "antd";
+import { Calendar, Button, Typography, Tooltip } from "antd";
 import { PlusOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useTasksStore, Task, StatusKey } from "../../state/tasks";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import "./style.css";
 import type { CalendarProps } from "antd";
 import type { Dayjs } from "dayjs";
@@ -16,13 +14,11 @@ import { STATUS_STYLE, toStatus, todayISO } from "./taskMeta";
 
 const { Title, Text } = Typography;
 
-const fetchTasks = async (): Promise<Task[]> => {
-  const { data } = await axios.get<Task[]>("/api");
-  return data;
-};
+
 
 const CalendarComponent: React.FC = () => {
-  const { tasks, setTasks } = useTasksStore();
+  const { tasks: allTasks, addTask, updateTask } = useTasksStore();
+  const tasks = allTasks.filter(t => !t.deletedAt && !t.archived);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
@@ -36,21 +32,6 @@ const CalendarComponent: React.FC = () => {
     if (tasks.some((t) => t.date === date)) setDayViewDate(date);
     else openModal(date);
   };
-
-  const { data: posts, error, isLoading } = useQuery({
-    queryKey: ["postsData"],
-    queryFn: fetchTasks,
-  });
-
-  // Seed store with API tasks (deduped by id)
-  useEffect(() => {
-    if (!posts?.length) return;
-    setTasks((prev) => {
-      const existingIds = new Set(prev.map((t) => t.id));
-      const incoming = posts.filter((t) => !existingIds.has(t.id));
-      return incoming.length ? [...prev, ...incoming] : prev;
-    });
-  }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Count tasks in the current calendar month
   useEffect(() => {
@@ -67,9 +48,9 @@ const CalendarComponent: React.FC = () => {
 
   const handleSave = (data: Task) => {
     if (selectedTask) {
-      setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? { ...data, id: t.id } : t)));
+      updateTask(selectedTask.id, data);
     } else {
-      setTasks((prev) => [...prev, { ...data, id: String(Date.now()) }]);
+      addTask(data);
     }
     setIsModalVisible(false);
   };
@@ -85,12 +66,12 @@ const CalendarComponent: React.FC = () => {
   };
 
   const handleDelete = (task: Task) => {
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    updateTask(task.id, { deletedAt: new Date().toISOString() });
     setViewTaskId(null);
   };
 
   const handleStatusChange = (task: Task, status: StatusKey) => {
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)));
+    updateTask(task.id, { status });
   };
 
   const fullCellRender: CalendarProps<Dayjs>["fullCellRender"] = (value, info) => {
@@ -203,26 +184,14 @@ const CalendarComponent: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="loading-container">
-          <Spin size="large" />
-          <Text className="loading-text">Loading tasks...</Text>
-        </div>
-      ) : error ? (
-        <div className="error-container">
-          <Text type="danger">Failed to load tasks.</Text>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
-        </div>
-      ) : (
-        <Calendar
-          className="custom-calendar"
-          fullscreen={false}
-          onSelect={(date, { source }) => {
-            if (source === "date") openDay(date.format("YYYY-MM-DD"));
-          }}
-          fullCellRender={fullCellRender}
-        />
-      )}
+      <Calendar
+        className="custom-calendar"
+        fullscreen={false}
+        onSelect={(date, { source }) => {
+          if (source === "date") openDay(date.format("YYYY-MM-DD"));
+        }}
+        fullCellRender={fullCellRender}
+      />
 
       <TaskFormModal
         open={isModalVisible}

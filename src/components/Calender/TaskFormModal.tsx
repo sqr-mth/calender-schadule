@@ -1,63 +1,73 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { Form, Modal } from "antd";
-import { StatusKey, Task } from "@/state/tasks";
-import CalenderForm from "./FormCalender";
-import { todayISO } from "./taskMeta";
+import { useEffect, useState } from 'react';
+import { Alert, Form, Modal, message } from 'antd';
+import type { Task } from '@/state/tasks';
+import CalenderForm from './FormCalender';
+import { todayISO } from './taskMeta';
+import { normalizeTaskInput } from '@/lib/taskInput';
 
 type Props = {
   open: boolean;
-  /** Date for a new task; ignored when editing. */
   date?: string | null;
   task?: Task;
   onClose: () => void;
-  onSave: (task: Task) => void;
+  onSave: (task: Task) => void | Promise<void>;
 };
 
-const TaskFormModal: React.FC<Props> = ({ open, date, task, onClose, onSave }) => {
+export default function TaskFormModal({ open, date, task, onClose, onSave }: Props) {
   const [form] = Form.useForm<Task>();
-  const [formData, setFormData] = useState<Task | undefined>(undefined);
-
-  const handleOk = async () => {
-    if (!formData) return;
-    try {
-      await form.validateFields();
-    } catch {
-      return; // antd shows the field errors inline
-    }
-    onSave({ ...formData, title: formData.title.trim(), desc: (formData.desc ?? "").trim() });
-  };
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!open) return;
-    setFormData(
-      task
-        ? { ...task }
-        : { id: String(Date.now()), title: "", desc: "", date: date ?? todayISO(), status: 1 as StatusKey },
-    );
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    setError('');
+    form.resetFields();
+    form.setFieldsValue(task ?? {
+      id: '', title: '', desc: '', date: date ?? todayISO(), status: 1, priority: 'medium',
+    });
+  }, [open, task, date, form]);
+
+  const handleSave = async () => {
+    let values: Task;
+    try {
+      values = await form.validateFields();
+    } catch (cause) {
+      if (cause && typeof cause === 'object' && 'errorFields' in cause) return;
+      setError(cause instanceof Error ? cause.message : 'Could not validate the task.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const normalized = normalizeTaskInput(values, task);
+      await onSave(normalized);
+      message.success(task ? 'Task updated' : 'Task added');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not save the task. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Modal
-      title={task ? "Edit task" : "Add task"}
+      title={task ? 'Edit task' : 'Add task'}
       open={open}
-      onOk={handleOk}
+      onOk={handleSave}
       onCancel={onClose}
       centered
       className="task-modal"
       destroyOnClose
-      okText={task ? "Save" : "Add task"}
+      okText={task ? 'Save' : 'Add task'}
+      okButtonProps={{ loading: saving }}
+      cancelButtonProps={{ disabled: saving }}
+      closable={!saving}
+      maskClosable={!saving}
     >
-      {formData && (
-        <CalenderForm
-          form={form}
-          onFormChange={(_changed, all) => setFormData((prev) => ({ ...prev!, ...all }))}
-          initialValues={formData}
-        />
-      )}
+      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
+      <CalenderForm form={form} />
     </Modal>
   );
-};
-
-export default TaskFormModal;
+}

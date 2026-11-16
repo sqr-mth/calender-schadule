@@ -9,11 +9,10 @@ import {
   SearchOutlined,
   UnorderedListOutlined,
 } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { useTasksStore, Task, Status, StatusKey } from "@/state/tasks";
 import TaskDetailModal from "@/components/Calender/TaskDetailModal";
 import TaskFormModal from "@/components/Calender/TaskFormModal";
+import TaskBoard from "@/components/TaskBoard";
 import {
   STATUS_KEYS,
   STATUS_STYLE,
@@ -25,60 +24,47 @@ import {
 
 const { Title, Text } = Typography;
 
-const fetchTasks = async (): Promise<Task[]> => {
-  const { data } = await axios.get<Task[]>("/api");
-  return data;
-};
+
 
 type Filter = "all" | StatusKey;
 
 const NEAR_DAYS = new Set(["Today", "Tomorrow", "Yesterday"]);
 
 const Tasks: React.FC = () => {
-  const { tasks, setTasks } = useTasksStore();
+  const { tasks, setTasks, addTask, updateTask } = useTasksStore();
+  const activeTasks = tasks.filter(t => !t.deletedAt && !t.archived);
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<"list" | "board">("list");
   const [filter, setFilter] = useState<Filter>("all");
   const [viewTaskId, setViewTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<{ open: boolean; task?: Task }>({ open: false });
   const viewTask = tasks.find((t) => t.id === viewTaskId);
 
-  const { data: posts } = useQuery({ queryKey: ["postsData"], queryFn: fetchTasks });
-
-  // Seed store with API tasks (same as Calendar)
-  useEffect(() => {
-    if (!posts?.length) return;
-    setTasks((prev) => {
-      const ids = new Set(prev.map((t) => t.id));
-      const incoming = posts.filter((t) => !ids.has(t.id));
-      return incoming.length ? [...prev, ...incoming] : prev;
-    });
-  }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const counts = useMemo(() => {
-    const c: Record<Filter, number> = { all: tasks.length, 1: 0, 2: 0, 3: 0 };
-    tasks.forEach((t) => c[toStatus(t.status)]++);
+    const c: Record<Filter, number> = { all: activeTasks.length, 1: 0, 2: 0, 3: 0 };
+    activeTasks.forEach((t) => c[toStatus(t.status)]++);
     return c;
-  }, [tasks]);
+  }, [activeTasks]);
 
   const groups = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const filtered = tasks.filter(
+    const filtered = activeTasks.filter(
       (t) =>
         (filter === "all" || toStatus(t.status) === filter) &&
-        (!q || t.title?.toLowerCase().includes(q) || t.desc?.toLowerCase().includes(q)),
+        (!q || t.title?.toLowerCase().includes(q) || (typeof t.desc === 'string' && t.desc.toLowerCase().includes(q)) || t.tags?.some(tag => tag.toLowerCase().includes(q)) || t.projectId?.toLowerCase().includes(q)),
     );
     const byDate = new Map<string, Task[]>();
     [...filtered]
       .sort((a, b) => a.date.localeCompare(b.date))
       .forEach((t) => byDate.set(t.date, [...(byDate.get(t.date) ?? []), t]));
     return [...byDate.entries()];
-  }, [tasks, search, filter]);
+  }, [activeTasks, search, filter]);
 
   const handleSave = (data: Task) => {
     if (form.task) {
-      setTasks((prev) => prev.map((t) => (t.id === form.task!.id ? { ...data, id: t.id } : t)));
+      updateTask(form.task.id, data);
     } else {
-      setTasks((prev) => [...prev, { ...data, id: String(Date.now()) }]);
+      addTask(data);
     }
     setForm({ open: false });
   };
@@ -115,6 +101,7 @@ const Tasks: React.FC = () => {
             allowClear
             className="tasks-search"
           />
+          <div className="task-view-switch"><button className={view === "list" ? "selected" : ""} onClick={() => setView("list")}>List</button><button className={view === "board" ? "selected" : ""} onClick={() => setView("board")}>Board</button></div>
           <div className="tasks-filter" role="tablist" aria-label="Filter by status">
             {filterOptions.map(({ key, label, color }) => (
               <button
@@ -133,10 +120,10 @@ const Tasks: React.FC = () => {
           </div>
         </div>
 
-        {groups.length === 0 ? (
+        {view === "board" ? <TaskBoard tasks={activeTasks.filter(t => (filter === "all" || toStatus(t.status) === filter) && (!search.trim() || `${t.title} ${typeof t.desc === 'string' ? t.desc : ''} ${(t.tags ?? []).join(" ")}`.toLowerCase().includes(search.toLowerCase())))} onOpen={setViewTaskId} onMove={(id,status) => updateTask(id,{status})} /> : groups.length === 0 ? (
           <div className="tasks-empty">
             <InboxOutlined style={{ fontSize: 32, color: "#94a3b8" }} />
-            {tasks.length === 0 ? (
+            {activeTasks.length === 0 ? (
               <>
                 <p className="tasks-empty-title">No tasks yet</p>
                 <p className="tasks-empty-text">Create your first task and it will show up here.</p>
@@ -189,8 +176,8 @@ const Tasks: React.FC = () => {
                         </span>
                         <div className="task-row-main">
                           <div className="task-row-title">{task.title || "Untitled task"}</div>
-                          <div className={`task-row-desc${task.desc ? "" : " is-empty"}`}>
-                            {task.desc || "No description"}
+                          <div className={`task-row-desc${typeof task.desc === 'string' && task.desc.trim() ? "" : " is-empty"}`}>
+                            {typeof task.desc === 'string' && task.desc.trim() ? task.desc : "No description"}
                           </div>
                         </div>
                         <span className="td-status-pill" style={{ color, background: `${color}1a` }}>
@@ -215,11 +202,11 @@ const Tasks: React.FC = () => {
           setForm({ open: true, task });
         }}
         onDelete={(task) => {
-          setTasks((prev) => prev.filter((t) => t.id !== task.id));
+          updateTask(task.id, { deletedAt: new Date().toISOString() });
           setViewTaskId(null);
         }}
         onStatusChange={(task, status) =>
-          setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)))
+          updateTask(task.id, { status })
         }
       />
 

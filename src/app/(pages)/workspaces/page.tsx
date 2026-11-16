@@ -1,0 +1,10 @@
+'use client';
+import { useState } from 'react';
+import { Button, Card, Input, Modal, Popconfirm, Tag } from 'antd';
+import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { useTasksStore } from '@/state/tasks';
+export default function Workspaces(){
+ const {workspaces,activeWorkspaceId,createWorkspace,switchWorkspace,renameWorkspace,deleteWorkspace,workspaceData,tasks}=useTasksStore();const [open,setOpen]=useState(false);const [name,setName]=useState('');const [editing,setEditing]=useState<string|null>(null);
+ const save=()=>{if(!name.trim())return;if(editing)renameWorkspace(editing,name);else createWorkspace(name);setName('');setEditing(null);setOpen(false)};
+ return <div className="module-page"><div className="module-header"><div><span className="eyebrow">LOCAL WORKSPACES</span><h1>Workspaces</h1><p>Each workspace keeps its tasks, projects, goals, habits, notes, and activity separate on this device.</p></div><Button type="primary" icon={<PlusOutlined/>} onClick={()=>{setEditing(null);setName('');setOpen(true)}}>New workspace</Button></div><div className="module-grid">{workspaces.map(w=><Card key={w.id} title={w.name} extra={w.id===activeWorkspaceId?<Tag color="purple">Active</Tag>:null}><p>{(w.id===activeWorkspaceId?tasks:workspaceData[w.id]?.tasks??[]).length} tasks</p><div className="workspace-actions"><Button onClick={()=>switchWorkspace(w.id)} disabled={w.id===activeWorkspaceId}>Switch</Button><Button icon={<EditOutlined/>} onClick={()=>{setEditing(w.id);setName(w.name);setOpen(true)}}>Rename</Button><Popconfirm title={`Delete ${w.name}?`} description="All local data in this workspace will be deleted." onConfirm={()=>deleteWorkspace(w.id)}><Button danger icon={<DeleteOutlined/>} disabled={workspaces.length===1}>Delete</Button></Popconfirm></div></Card>)}</div><Modal title={editing?'Rename workspace':'New workspace'} open={open} onCancel={()=>setOpen(false)} onOk={save}><Input autoFocus maxLength={80} placeholder="Workspace name" value={name} onChange={e=>setName(e.target.value)} onPressEnter={save}/></Modal></div>
+}

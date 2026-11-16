@@ -1,0 +1,151 @@
+// use prisma-8
+// Future PostgreSQL contract. It is not connected to the current local-first UI.
+model User {
+  id String @id
+  email String @unique
+  passwordHash String?
+  displayName String?
+  createdAt DateTime
+  sessions Session[]
+  memberships WorkspaceMember[]
+  accounts OAuthAccount[]
+}
+model Session {
+  id String @id
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+model OAuthAccount {
+  id String @id
+  userId String
+  provider String
+  providerAccountId String
+  user User @relation(fields: [userId], references: [id])
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+model Workspace {
+  id String @id
+  name String
+  createdAt DateTime
+  settings Json?
+  members WorkspaceMember[]
+  tasks Task[]
+  projects Project[]
+  goals Goal[]
+  habits Habit[]
+  notes Note[]
+  timeEntries TimeEntry[]
+  calendarConnections CalendarConnection[]
+}
+model WorkspaceMember {
+  userId String
+  workspaceId String
+  role String
+  user User @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  @@id([userId, workspaceId])
+  @@index([workspaceId])
+}
+model Project {
+  id String @id
+  workspaceId String
+  title String
+  description String
+  priority String
+  deadline DateTime?
+  archived Boolean
+  createdAt DateTime
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  tasks Task[]
+  timeEntries TimeEntry[]
+  @@index([workspaceId, archived])
+}
+model Task {
+  id String @id
+  workspaceId String
+  projectId String?
+  title String
+  description String
+  status Int
+  priority String
+  dueDate DateTime?
+  startAt DateTime?
+  endAt DateTime?
+  estimatedMinutes Int?
+  actualMinutes Int?
+  tags Json?
+  subtasks Json?
+  recurrence Json?
+  archived Boolean
+  deletedAt DateTime?
+  createdAt DateTime
+  updatedAt DateTime
+  completedAt DateTime?
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  timeEntries TimeEntry[]
+  @@index([workspaceId, dueDate])
+  @@index([workspaceId, status])
+  @@index([projectId])
+}
+model Goal {
+  id String @id
+  workspaceId String
+  title String
+  description String
+  period String
+  target Int
+  progress Int
+  deadline DateTime?
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  @@index([workspaceId])
+}
+model Habit {
+  id String @id
+  workspaceId String
+  title String
+  frequency String
+  completedDates Json
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  @@index([workspaceId])
+}
+model Note {
+  id String @id
+  workspaceId String
+  title String
+  content String
+  pinned Boolean
+  updatedAt DateTime
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  @@index([workspaceId])
+}
+model TimeEntry {
+  id String @id
+  workspaceId String
+  taskId String?
+  projectId String?
+  startedAt DateTime
+  minutes Int
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  task Task? @relation(fields: [taskId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  @@index([workspaceId, startedAt])
+  @@index([taskId])
+  @@index([projectId])
+}
+model CalendarConnection {
+  id String @id
+  workspaceId String
+  provider String
+  providerAccountId String
+  encryptedRefreshToken String
+  scopes Json
+  createdAt DateTime
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  @@unique([workspaceId, provider, providerAccountId])
+}
